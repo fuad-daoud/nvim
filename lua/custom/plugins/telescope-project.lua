@@ -1,4 +1,3 @@
-local M = {
+return { {
   'nvim-telescope/telescope-project.nvim',
-}
-return M
+} }

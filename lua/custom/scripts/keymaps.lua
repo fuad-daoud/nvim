@@ -7,11 +7,12 @@ vim.keymap.set('n', '<right>', '<cmd>echo "Use l to move!!"<CR>')
 vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
-vim.keymap.set('i', 'jj', '<Esc>')
+-- vim.keymap.set('i', 'jj', '<Esc>')
 vim.keymap.set('n', '<leader>b', '<cmd>SidebarNvimToggle<CR>', { desc = 'Toggle Sidebar' })
 vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
 vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
 
+-- TODO: remove these when adding harboon we are a single buffer kinda guy
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 vim.keymap.set('n', '<C-j>', '<C-w><C-j>', { desc = 'Move focus to the lower window' })
@@ -29,3 +30,25 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
 
 --  See `:help wincmd` for a list of all window commands
+
+--  NOTE: these keymaps to move lines up and down in normal and visual mode
+vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")
+vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")
+vim.keymap.set('n', 'J', ':m .+1<CR>==')
+vim.keymap.set('n', 'K', ':m .-2<CR>==')
+
+-- NOTE: these keymaps are for zen mode
+
+vim.keymap.set('n', '<leader>zen', function()
+  require('zen-mode').setup {
+    window = {
+      width = 135,
+      options = {},
+    },
+  }
+  require('zen-mode').toggle()
+  vim.wo.wrap = false
+  vim.wo.number = false
+  vim.wo.rnu = false
+  vim.opt.colorcolumn = '0'
+end)
