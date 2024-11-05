@@ -38,7 +38,9 @@ return function(vim)
   -- Show which line your cursor is on
   vim.opt.cursorline = false
   -- Minimal number of screen lines to keep above and below the cursor.
-  vim.opt.scrolloff = 10
+  vim.opt.scrolloff = 20
   -- This display the same cursor for all modes this way don't depend on the cursor for the mode
   vim.opt.guicursor = 'n-v-i-c:block'
+
+  vim.opt.clipboard = 'unnamedplus'
 end

@@ -125,13 +125,68 @@ return function(vim)
       end,
     },
     {
+      'MarcHamamji/runner.nvim',
+      dependencies = {
+        'nvim-telescope/telescope.nvim',
+        dependencies = { 'nvim-lua/plenary.nvim' },
+      },
+      config = function()
+        local runner = require 'runner'
+        -- local command_handler = require('runner.handlers.helpers').command_handler
+        local choice = require('runner.handlers.helpers').choice
+        local shell_handler = require('runner.handlers.helpers').shell_handler
+        runner.set_handler(
+          'cpp',
+          choice {
+            ['Run'] = shell_handler 'g++ -o a.out main.cpp && ./a.out',
+          }
+        )
+        runner.set_handler(
+          'ruby',
+          choice {
+            ['up'] = shell_handler 'vagrant up --parallel',
+            ['down'] = shell_handler 'vagrant destroy --parallel',
+            ['status'] = shell_handler 'vagrant status',
+            ['rsync'] = shell_handler 'vagrant rsync',
+          }
+        )
+        runner.set_handler(
+          'make',
+          choice {
+            ['full'] = shell_handler 'make full',
+            ['ping'] = shell_handler 'make ping',
+            ['install-kubernetes'] = shell_handler 'make install-kubernetes',
+            ['health'] = shell_handler 'make health',
+            ['reset'] = shell_handler 'make reset',
+            ['custom'] = shell_handler('make ', true),
+          }
+        )
+
+        runner.setup {
+          position = 'right', -- position of the terminal window when using the shell_handler
+          width = 80, -- width of window when position is left or right
+          height = 10, -- height of window when position is top or bottom
+        }
+        vim.keymap.set('n', '<leader>r', '<cmd>Runner<cr>', { desc = 'Runner' })
+      end,
+    },
+    {
       -- TODO: add keymaps for workspace diagnostic and walking through them
       'folke/trouble.nvim',
       config = function()
         require('trouble').setup {}
       end,
     },
-    'folke/zen-mode.nvim',
+    {
+      'MeanderingProgrammer/render-markdown.nvim',
+      dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' }, -- if you use the mini.nvim suite
+      -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.icons' }, -- if you use standalone mini plugins
+      -- dependencies = { 'nvim-treesitter/nvim-treesitter', 'nvim-tree/nvim-web-devicons' }, -- if you prefer nvim-web-devicons
+      ---@module 'render-markdown'
+      ---@type render.md.UserConfig
+      opts = {},
+    },
+    -- 'folke/zen-mode.nvim',
     -- require 'kickstart.plugins.debug',
     -- require 'kickstart.plugins.indent_line',
     { import = 'custom.plugins' },
