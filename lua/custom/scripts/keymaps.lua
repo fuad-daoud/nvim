@@ -8,7 +8,7 @@ vim.keymap.set('n', '<up>', '<cmd>echo "Use k to move!!"<CR>')
 vim.keymap.set('n', '<down>', '<cmd>echo "Use j to move!!"<CR>')
 
 -- vim.keymap.set('i', 'jj', '<Esc>')
-vim.keymap.set('n', '<leader>b', '<cmd>SidebarNvimToggle<CR>', { desc = 'Toggle Sidebar' })
+-- vim.keymap.set('n', '<leader>b', '<cmd>SidebarNvimToggle<CR>', { desc = 'Toggle Sidebar' })
 vim.keymap.set('n', '<leader>pv', vim.cmd.Ex)
 vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
 
