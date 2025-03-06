@@ -66,10 +66,31 @@ require('lazy').setup({
         typescript = { { 'prettied', 'prettier', 'sql-formatter' } },
         typescriptreact = { { 'prettied', 'prettier' } },
         yaml = { 'prettied' },
+        elixir = { 'prettied' },
       },
     },
   },
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
+  -- {
+  --   'zbirenbaum/copilot-cmp',
+  --   event = 'InsertEnter',
+  --   config = function()
+  --     require('copilot_cmp').setup()
+  --   end,
+  --   dependencies = {
+  --     'zbirenbaum/copilot.lua',
+  --     cmd = 'Copilot',
+  --     config = function()
+  --       require('copilot').setup {
+  --         suggestion = {
+  --           enabled = true,
+  --           auto_trigger = true,
+  --         },
+  --         panel = { enabled = true },
+  --       }
+  --     end,
+  --   },
+  -- },
   {
     'rose-pine/neovim',
     name = 'rose-pine',

@@ -19,3 +19,4 @@ vim.opt.scrolloff = 20
 vim.opt.guicursor = 'n-v-i-c:block'
 vim.opt.clipboard = 'unnamedplus,unnamed'
 vim.opt.wildignore = '*node_modules/**'
+vim.opt.wrap = false
