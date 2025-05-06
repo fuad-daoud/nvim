@@ -165,6 +165,7 @@ return {
       local ensure_installed = vim.tbl_keys(servers or {})
       vim.list_extend(ensure_installed, {
         'stylua',
+        { 'zls', version = '0.14.0' },
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
 
@@ -176,6 +177,15 @@ return {
             require('lspconfig')[server_name].setup(server)
           end,
         },
+      }
+
+      vim.diagnostic.config {
+        update_in_insert = true,
+        virtual_lines = true,
+        severity_sort = true,
+        signs = true,
+        float = true,
+        underline = true,
       }
     end,
   },

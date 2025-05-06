@@ -51,46 +51,37 @@ require('lazy').setup({
           lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
         }
       end,
+      -- formatters = {
+      --   mix = {
+      --     command = 'mix',
+      --     args = { 'format', '-' },
+      --     stdin = true,
+      --   },
+      -- },
       formatters_by_ft = {
         lua = { 'stylua' },
-        css = { { 'prettied', 'prettier' } },
-        graphql = { { 'prettied', 'prettier' } },
-        html = { { 'prettied', 'prettier' } },
-        javascript = { { 'prettied', 'prettier' } },
-        javascriptreact = { { 'prettied', 'prettier' } },
-        json = { { 'prettied', 'prettier' } },
-        markdown = { { 'prettied', 'prettier' } },
+        css = { 'prettied', 'prettier' },
+        graphql = { 'prettied', 'prettier' },
+        html = { 'prettied', 'prettier' },
+        javascript = { 'prettied', 'prettier' },
+        javascriptreact = { 'prettied', 'prettier' },
+        json = { 'prettied', 'prettier' },
+        markdown = { 'prettied', 'prettier' },
         python = { 'isort', 'black' },
         sql = { 'sql-formatter' },
-        svelte = { { 'prettied', 'prettier' } },
-        typescript = { { 'prettied', 'prettier', 'sql-formatter' } },
-        typescriptreact = { { 'prettied', 'prettier' } },
+        svelte = { 'prettied', 'prettier' },
+        typescript = { 'prettied', 'prettier', 'sql-formatter' },
+        typescriptreact = { 'prettied', 'prettier' },
         yaml = { 'prettied' },
         elixir = { 'prettied' },
+        -- elixir = { 'mix' },
+        -- eelixir = { 'mix' },
+        -- heex = { 'mix' },
       },
     },
   },
   { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
-  -- {
-  --   'zbirenbaum/copilot-cmp',
-  --   event = 'InsertEnter',
-  --   config = function()
-  --     require('copilot_cmp').setup()
-  --   end,
-  --   dependencies = {
-  --     'zbirenbaum/copilot.lua',
-  --     cmd = 'Copilot',
-  --     config = function()
-  --       require('copilot').setup {
-  --         suggestion = {
-  --           enabled = true,
-  --           auto_trigger = true,
-  --         },
-  --         panel = { enabled = true },
-  --       }
-  --     end,
-  --   },
-  -- },
+  { 'rcarriga/nvim-notify' },
   {
     'rose-pine/neovim',
     name = 'rose-pine',
@@ -141,13 +132,6 @@ require('lazy').setup({
     config = function()
       vim.cmd 'colorscheme rose-pine'
     end,
-  },
-  {
-    'MeanderingProgrammer/render-markdown.nvim',
-    dependencies = { 'nvim-treesitter/nvim-treesitter', 'echasnovski/mini.nvim' },
-    ---@module 'render-markdown'
-    ---@type render.md.UserConfig
-    opts = {},
   },
   require 'kickstart.plugins.debug',
   -- require 'kickstart.plugins.indent_line',

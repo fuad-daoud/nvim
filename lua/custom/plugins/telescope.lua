@@ -1,5 +1,9 @@
 return {
   {
+    'nvim-telescope/telescope-file-browser.nvim',
+    dependencies = { 'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim' },
+  },
+  {
     'nvim-telescope/telescope-project.nvim',
     dependencies = {
       'nvim-telescope/telescope.nvim',
@@ -28,7 +32,7 @@ return {
           layout_config = {
             horizontal = {
               height = 0.9,
-              preview_cutoff = 120,
+              preview_cutoff = 180,
               prompt_position = 'bottom',
               width = 0.9,
             },
@@ -38,28 +42,65 @@ return {
           },
         },
         extensions = {
+          file_browser = {
+            theme = 'ivy',
+            hijack_netrw = false,
+            mappings = {
+              ['i'] = {
+                -- your custom insert mode mappings
+              },
+              ['n'] = {
+                -- your custom normal mode mappings
+              },
+            },
+          },
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
           },
           project = {
+            display_type = 'full',
             base_dirs = {
               '~/projects/',
+              '~/.config/nvim',
+              '~/.config/sway',
+              '~/.config/ghostty',
+              '~/.config/waybar',
+              '~/.config/rofi',
+              '~/.config/clipse',
             },
-            hidden_files = true,
+            ignore_missing_dirs = true,
             theme = 'dropdown',
             order_by = 'asc',
-            search_by = 'title',
+            search_by = { 'title', 'path' },
+            hidden_files = true,
             sync_with_nvim_tree = true,
             on_project_selected = function(prompt_bufnr)
               require('telescope._extensions.project.actions').change_working_directory(prompt_bufnr, false)
+              vim.cmd.Ex {}
+              local cwd = vim.fn.getcwd()
+              local osc7_cwd = string.format('\027]7;file://%s%s\027\\', vim.fn.hostname(), cwd)
+              io.write(osc7_cwd)
               -- require('harpoon.ui').nav_file(1)
             end,
+            i = {
+              ['<c-d>'] = require('telescope._extensions.project.actions').delete_project,
+              ['<c-v>'] = require('telescope._extensions.project.actions').rename_project,
+              ['<c-a>'] = require('telescope._extensions.project.actions').add_project,
+              ['<c-A>'] = require('telescope._extensions.project.actions').add_project_cwd,
+              ['<c-f>'] = require('telescope._extensions.project.actions').find_project_files,
+              ['<c-b>'] = require('telescope._extensions.project.actions').browse_project_files,
+              ['<c-s>'] = require('telescope._extensions.project.actions').search_in_project_files,
+              ['<c-r>'] = require('telescope._extensions.project.actions').recent_project_files,
+              ['<c-l>'] = require('telescope._extensions.project.actions').change_working_directory,
+              ['<c-o>'] = require('telescope._extensions.project.actions').next_cd_scope,
+            },
           },
         },
       }
 
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
+      pcall(require('telescope').load_extension, 'file_browser')
 
       local builtin = require 'telescope.builtin'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
@@ -73,6 +114,9 @@ return {
       vim.keymap.set('n', '<leader>s.', builtin.oldfiles, { desc = '[S]earch Recent Files ("." for repeat)' })
       vim.keymap.set('n', '<leader><leader>', builtin.buffers, { desc = '[ ] Find existing buffers' })
       vim.keymap.set('n', '<C-p>', builtin.git_files, { desc = 'Search files not ignored by git' })
+      vim.keymap.set('n', '<leader>pt', function()
+        require('telescope').extensions.pomodori.timers()
+      end, { desc = 'Manage Pomodori Timers' })
       vim.keymap.set('n', '<leader>sp', require('telescope').extensions.project.project, { desc = '[S]earch [P]rojects' })
       vim.keymap.set('n', '<leader>st', '<cmd>TodoTelescope<cr>', { desc = 'Search Todos' })
       vim.keymap.set('n', '<leader>/', function()
@@ -99,6 +143,9 @@ return {
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
+      vim.keymap.set('n', '<space>fb', function()
+        require('telescope').extensions.file_browser.file_browser()
+      end)
     end,
   },
 }

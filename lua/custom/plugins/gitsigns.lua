@@ -5,16 +5,16 @@ return {
       signs = {
         add = { text = '┃' },
         change = { text = '┃' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
+        delete = { text = '┃' },
+        topdelete = { text = '┃' },
         changedelete = { text = '~' },
         untracked = { text = '┆' },
       },
       signs_staged = {
         add = { text = '┃' },
         change = { text = '┃' },
-        delete = { text = '_' },
-        topdelete = { text = '‾' },
+        delete = { text = '┃' },
+        topdelete = { text = '┃' },
         changedelete = { text = '~' },
         untracked = { text = '┆' },
       },
@@ -32,7 +32,7 @@ return {
         map('n', '<leader>gD', function()
           gitsigns.diffthis '@'
         end, { desc = '[G]it [D]iff against last commit' })
-        map('n', '<leader>tD', gitsigns.toggle_deleted, { desc = '[T]oggle git show [D]eleted' })
+        map('n', '<leader>tD', gitsigns.preview_hunk_inline, { desc = '[T]oggle git show [D]eleted' })
       end,
     },
   },

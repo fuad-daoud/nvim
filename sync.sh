@@ -1,0 +1,31 @@
+rclone bisync contabo:obsidian /home/fuad/vaults \
+  --recover \
+  --resilient \
+  --max-delete 100 \
+  --log-level Notice \
+  --max-lock 15m \
+  --retries 3 \
+  --low-level-retries 10 \
+  --compare size,modtime \
+  --create-empty-src-dirs \
+  --check-access \
+  --transfers 32 \
+  --checkers 32 \
+  --s3-upload-concurrency 16 \
+  --s3-chunk-size 32M \
+  --buffer-size 64M \
+  --fast-list \
+  --exclude "*.tmp" \
+  --exclude "*.log" \
+  --exclude "._*" \
+  --exclude ".DS_Store" \
+  --exclude ".Spotlight-V100/**" \
+  --exclude ".Trashes/**" \
+  --exclude ".fseventsd/**" \
+  --exclude ".AppleDouble/**" \
+  --exclude ".VolumeIcon.icns" \
+  --conflict-resolve newer \
+  --conflict-loser num \
+  --conflict-suffix rc-conflict \
+  --exclude-from /home/fuad/.obsidian-filters.txt \
+  --log-file /home/fuad/.local/state/rclone-bisync-manager/logs/rclone-bisync-manager.log

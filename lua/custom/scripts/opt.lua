@@ -20,3 +20,6 @@ vim.opt.guicursor = 'n-v-i-c:block'
 vim.opt.clipboard = 'unnamedplus,unnamed'
 vim.opt.wildignore = '*node_modules/**'
 vim.opt.wrap = false
+vim.opt.termguicolors = true
+vim.opt.conceallevel = 1
+vim.notify = require 'notify'
