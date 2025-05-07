@@ -80,13 +80,16 @@ vim.api.nvim_create_autocmd({ 'BufReadPost' }, {
       local exit_code = vim.v.shell_error
 
       vim.o.statusline = old_statusline
-      vim.cmd 'redraw' -- Update the UI again
+      vim.cmd 'redraw'
 
       if exit_code == 0 then
         vim.notify('Obsidian sync with Contabo completed successfully', vim.log.levels.INFO)
+        local cursor_pos = vim.api.nvim_win_get_cursor(0)
+        vim.cmd 'edit!'
+        pcall(vim.api.nvim_win_set_cursor, 0, cursor_pos)
+        vim.notify('Buffer refreshed with latest content', vim.log.levels.INFO)
       else
         vim.notify('Obsidian sync with Contabo failed with code: ' .. exit_code, vim.log.levels.ERROR)
-        -- Show condensed error details if there are any
         if result and result ~= '' then
           vim.notify('Error: ' .. result:gsub('%s+', ' '):sub(1, 100) .. (result:len() > 100 and '...' or ''), vim.log.levels.ERROR)
         end
