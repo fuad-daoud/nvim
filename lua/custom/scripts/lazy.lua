@@ -36,7 +36,7 @@ require('lazy').setup({
         function()
           local conform = require 'conform'
 
-          conform.format { async = true, lsp_fallback = true }
+          conform.format { async = true, lsp_format = 'fallback' }
         end,
         mode = '',
         desc = '[F]ormat buffer',
@@ -46,10 +46,16 @@ require('lazy').setup({
       notify_on_error = false,
       format_on_save = function(bufnr)
         local disable_filetypes = { c = true, cpp = true }
-        return {
-          timeout_ms = 500,
-          lsp_fallback = not disable_filetypes[vim.bo[bufnr].filetype],
-        }
+        local lsp_format_opt
+
+        if disable_filetypes[vim.bo[bufnr].filetype] then
+          return nil
+        else
+          return {
+            timeout_ms = 500,
+            lsp_format = lsp_format_opt,
+          }
+        end
       end,
       -- formatters = {
       --   mix = {
