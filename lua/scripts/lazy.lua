@@ -86,7 +86,6 @@ require('lazy').setup({
       },
     },
   },
-  { 'folke/todo-comments.nvim', event = 'VimEnter', dependencies = { 'nvim-lua/plenary.nvim' }, opts = { signs = false } },
   { 'rcarriga/nvim-notify' },
   {
     'rose-pine/neovim',
@@ -139,9 +138,7 @@ require('lazy').setup({
       vim.cmd 'colorscheme rose-pine'
     end,
   },
-  require 'kickstart.plugins.debug',
-  -- require 'kickstart.plugins.indent_line',
-  { import = 'custom.plugins' },
+  { import = 'plugins' },
 }, {
   ui = {
     -- If you are using a Nerd Font: set icons to an empty table which will use the

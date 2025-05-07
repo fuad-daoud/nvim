@@ -31,7 +31,6 @@ vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' }
 
 --  See `:help wincmd` for a list of all window commands
 
---  NOTE: these keymaps to move lines up and down in normal and visual mode
 vim.keymap.set('v', 'J', ":m '>+1<CR>gv=gv")
 vim.keymap.set('v', 'K', ":m '<-2<CR>gv=gv")
 vim.keymap.set('n', 'J', ':m .+1<CR>==')
