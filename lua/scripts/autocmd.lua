@@ -13,54 +13,54 @@ vim.api.nvim_create_autocmd('User', {
   end,
 })
 
-vim.api.nvim_create_autocmd('VimEnter', {
-  callback = function()
-    local argv = vim.fn.argv()
-    if #argv == 0 then
-      require('telescope').extensions.project.project {
-        layout_strategy = 'horizontal',
-        layout_config = {
-          width = 0.9,
-          height = 0.9,
-          preview_width = 0.1,
-        },
-        prompt_title = 'Projects',
-        results_title = 'Project List',
-        sorting_strategy = 'ascending',
-        prompt_prefix = '===> ',
-        borderchars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' },
-        display_type = 'full',
-        ignore_missing_dirs = true,
-        attach_mappings = function(prompt_bufnr, map)
-          local actions = require 'telescope.actions'
-
-          map('i', '<Esc>', function()
-            actions.close(prompt_bufnr)
-            vim.cmd 'qa!'
-          end)
-
-          map('i', '<C-c>', function()
-            actions.close(prompt_bufnr)
-            vim.cmd 'qa!'
-          end)
-
-          map('n', '<Esc>', function()
-            actions.close(prompt_bufnr)
-            vim.cmd 'q'
-          end)
-
-          map('n', 'q', function()
-            actions.close(prompt_bufnr)
-            vim.cmd 'q'
-          end)
-
-          return true
-        end,
-      }
-    end
-  end,
-  desc = 'Open Telescope project when starting Neovim without arguments',
-})
+-- vim.api.nvim_create_autocmd('VimEnter', {
+--   callback = function()
+--     local argv = vim.fn.argv()
+--     if #argv == 0 then
+--       require('telescope').extensions.project.project {
+--         layout_strategy = 'horizontal',
+--         layout_config = {
+--           width = 0.9,
+--           height = 0.9,
+--           preview_width = 0.1,
+--         },
+--         prompt_title = 'Projects',
+--         results_title = 'Project List',
+--         sorting_strategy = 'ascending',
+--         prompt_prefix = '===> ',
+--         borderchars = { '─', '│', '─', '│', '╭', '╮', '╯', '╰' },
+--         display_type = 'full',
+--         ignore_missing_dirs = true,
+--         attach_mappings = function(prompt_bufnr, map)
+--           local actions = require 'telescope.actions'
+--
+--           map('i', '<Esc>', function()
+--             actions.close(prompt_bufnr)
+--             vim.cmd 'qa!'
+--           end)
+--
+--           map('i', '<C-c>', function()
+--             actions.close(prompt_bufnr)
+--             vim.cmd 'qa!'
+--           end)
+--
+--           map('n', '<Esc>', function()
+--             actions.close(prompt_bufnr)
+--             vim.cmd 'q'
+--           end)
+--
+--           map('n', 'q', function()
+--             actions.close(prompt_bufnr)
+--             vim.cmd 'q'
+--           end)
+--
+--           return true
+--         end,
+--       }
+--     end
+--   end,
+--   desc = 'Open Telescope project when starting Neovim without arguments',
+-- })
 
 local obsidian_sync_group = vim.api.nvim_create_augroup('ObsidianSync', { clear = true })
 local sync_script = '/home/fuad/.config/nvim/sync.sh'
