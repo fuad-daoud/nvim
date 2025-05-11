@@ -86,17 +86,36 @@ require('lazy').setup({
       },
     },
   },
+  { 'vuciv/golf' },
   { 'rcarriga/nvim-notify' },
   {
     'rose-pine/neovim',
     name = 'rose-pine',
     opts = {
+      variant = 'moon',
+      dark_variant = 'moon',
+      dim_inactive_windows = true,
+      extend_background_behind_borders = true,
+
       styles = {
         bold = true,
         italic = true,
         transparency = true,
       },
+      highlight_groups = {
+        Cursor = { fg = 'base', bg = 'rose' },
+        LineNr = { fg = 'muted', bold = false },
+        CursorLineNr = { fg = 'rose', bold = true },
+        Search = { bg = 'gold', fg = 'base', bold = true },
+        IncSearch = { bg = 'iris', fg = 'base', bold = true },
+        Visual = { bg = 'highlight_med', blend = 10 },
+        Comment = { fg = 'muted', italic = true },
+        String = { fg = 'foam', italic = false },
+        StatusLine = { fg = 'text', bg = 'surface' },
+        StatusLineNC = { fg = 'subtle', bg = 'surface' },
+      },
       groups = {
+
         border = 'muted',
         link = 'iris',
         panel = 'surface',

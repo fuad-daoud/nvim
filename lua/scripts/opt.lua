@@ -23,3 +23,12 @@ vim.opt.wrap = false
 vim.opt.termguicolors = true
 vim.opt.conceallevel = 1
 vim.notify = require 'notify'
+
+vim.g.terminal_color_0 = '#2a273f' -- black
+vim.g.terminal_color_1 = '#eb6f92' -- red
+vim.g.terminal_color_2 = '#9ccfd8' -- green
+vim.g.terminal_color_3 = '#f6c177' -- yellow
+vim.g.terminal_color_4 = '#31748f' -- blue
+vim.g.terminal_color_5 = '#c4a7e7' -- magenta
+vim.g.terminal_color_6 = '#ebbcba' -- cyan
+vim.g.terminal_color_7 = '#e0def4' -- white
