@@ -31,11 +31,13 @@ return {
 ]],
         keys = {
           { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
+          { icon = '🏌️', key = 'l', desc = 'Golf Today', action = ':Golf Today' },
           { icon = '󰈙 ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
           { icon = '󰈙 ', key = 'f', desc = 'File explorer', action = ':lua Snacks.explorer()' },
           { icon = '󰈙 ', key = 'p', desc = 'Projects', action = ':lua Snacks.picker.projects()' },
           { icon = '󰂺 ', key = 't', desc = 'Obsidian Today', action = ':ObsidianToday' },
-          { icon = '󰂺 ', key = 't', desc = 'Obsidian Yesterday', action = ':ObsidianYesterday' },
+          { icon = '󰂺 ', key = 'y', desc = 'Obsidian Yesterday', action = ':ObsidianYesterday' },
+          { icon = '󰂺 ', key = 'g', desc = 'General Thoughts', action = ':edit ~/vaults/personal/general-thoughts.md' },
           { icon = ' ', key = 'c', desc = 'Config', action = ":lua Snacks.dashboard.pick('files', {cwd = vim.fn.stdpath('config')})" },
           { icon = '󰒲 ', key = 'z', desc = 'Lazy', action = ':Lazy', enabled = package.loaded.lazy ~= nil },
           { icon = ' ', key = 'q', desc = 'Quit', action = ':qa' },
@@ -89,6 +91,12 @@ return {
     },
   },
   init = function()
+    vim.keymap.set('n', '<leader>hb', function()
+      vim.cmd 'silent! %bdelete'
+      vim.cmd 'enew'
+      vim.cmd 'lua Snacks.dashboard()'
+      vim.cmd 'normal! \x1b'
+    end, { desc = 'Return to Snacks Dashboard' })
     vim.api.nvim_create_autocmd('User', {
       pattern = 'VeryLazy',
       callback = function()
