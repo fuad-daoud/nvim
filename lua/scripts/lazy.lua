@@ -157,6 +157,12 @@ require('lazy').setup({
       vim.cmd 'colorscheme rose-pine'
     end,
   },
+  {
+    'catgoose/nvim-colorizer.lua',
+    event = 'BufReadPre',
+    opts = { -- set to setup table
+    },
+  },
   { import = 'plugins' },
 }, {
   ui = {
