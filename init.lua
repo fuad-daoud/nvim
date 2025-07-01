@@ -1,5 +1,6 @@
 require 'scripts.setup'
 require 'scripts.lazy'
+
 require 'scripts.autocmd'
 require 'scripts.keymaps'
 require 'scripts.opt'
