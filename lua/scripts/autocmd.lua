@@ -76,4 +76,13 @@ vim.api.nvim_create_autocmd({ 'BufWritePost' }, {
   end,
   desc = 'Sync Obsidian files with Contabo after saving a file in ~/vaults',
 })
-
+vim.api.nvim_create_autocmd('BufWritePre', {
+  group = vim.api.nvim_create_augroup('GoFormat', { clear = true }),
+  pattern = '*.go',
+  callback = function()
+    vim.lsp.buf.code_action {
+      context = { only = { 'source.organizeImports' }, diagnostics = vim.lsp.diagnostic.get_line_diagnostics() },
+      apply = true,
+    }
+  end,
+})
