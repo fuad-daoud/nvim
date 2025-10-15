@@ -80,7 +80,6 @@ return {
               local cwd = vim.fn.getcwd()
               local osc7_cwd = string.format('\027]7;file://%s%s\027\\', vim.fn.hostname(), cwd)
               io.write(osc7_cwd)
-              -- require('harpoon.ui').nav_file(1)
             end,
             i = {
               ['<c-d>'] = require('telescope._extensions.project.actions').delete_project,
