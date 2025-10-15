@@ -44,6 +44,7 @@ return {
         extensions = {
           file_browser = {
             theme = 'ivy',
+            hijack_netrw = false,
             mappings = {
               ['i'] = {
                 -- your custom insert mode mappings
