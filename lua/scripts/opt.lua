@@ -23,6 +23,8 @@ vim.opt.wrap = false
 vim.opt.termguicolors = true
 vim.opt.conceallevel = 1
 vim.notify = require 'notify'
+vim.g.loaded_netrw = 1
+vim.g.loaded_netrwPlugin = 1
 
 vim.g.terminal_color_0 = '#2a273f' -- black
 vim.g.terminal_color_1 = '#eb6f92' -- red
