@@ -86,3 +86,10 @@ vim.api.nvim_create_autocmd('BufWritePre', {
     }
   end,
 })
+-- Add after the LspAttach autocmd block (around line 50)
+vim.api.nvim_create_autocmd('CursorHoldI', {
+  group = vim.api.nvim_create_augroup('lsp-signature', { clear = true }),
+  callback = function()
+    vim.lsp.buf.signature_help()
+  end,
+})
