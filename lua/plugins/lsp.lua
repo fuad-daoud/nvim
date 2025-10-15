@@ -78,10 +78,31 @@ return {
       local servers = {
         zls = {
           cmd = { '/sbin/zls' },
-          version = '0.14.1',
+          version = '0.14.0',
         },
-        clangd = {},
-        gopls = {},
+        clangd = {
+          cmd = {
+            'clangd',
+            '--background-index',
+            '--clang-tidy',
+            '--header-insertion=iwyu',
+          },
+        },
+        gopls = {
+          settings = {
+            gopls = {
+              buildFlags = { '-tags=cgo' },
+              env = {
+                CGO_ENABLED = '1',
+              },
+              analyses = {
+                unusedparams = true,
+                shadow = true,
+              },
+              staticcheck = true,
+            },
+          },
+        },
         pyright = {},
         rust_analyzer = {},
         elixirls = {},
