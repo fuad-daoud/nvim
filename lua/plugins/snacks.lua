@@ -6,6 +6,25 @@ return {
   opts = {
     bigfile = { enabled = true },
     quickfile = { enabled = true },
+    picker = {
+      sources = {
+        projects = {
+          confirm = function(picker, item)
+            picker:close()
+            if item and item.file then
+              vim.cmd('cd ' .. vim.fn.fnameescape(item.file))
+              vim.notify('Changed directory to: ' .. item.file, vim.log.levels.INFO)
+
+              local cwd = vim.fn.getcwd()
+              local osc7_cwd = string.format('\027]7;file://%s%s\027\\', vim.fn.hostname(), cwd)
+              io.write(osc7_cwd)
+
+              vim.cmd.Ex()
+            end
+          end,
+        },
+      },
+    },
     dashboard = {
       preset = {
         header = [[
