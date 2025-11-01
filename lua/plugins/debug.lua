@@ -1,18 +1,14 @@
 return {
   'mfussenegger/nvim-dap',
   dependencies = {
-    -- Creates a beautiful debugger UI
     'rcarriga/nvim-dap-ui',
     'nvim-neotest/nvim-nio',
-    'williamboman/mason.nvim',
-    'jay-babu/mason-nvim-dap.nvim',
     'leoluz/nvim-dap-go',
   },
   keys = function(_, keys)
     local dap = require 'dap'
     local dapui = require 'dapui'
     return {
-      -- Basic debugging keymaps, feel free to change to your liking!
       { '<F5>', dap.continue, desc = 'Debug: Start/Continue' },
       { '<F1>', dap.step_into, desc = 'Debug: Step Into' },
       { '<F2>', dap.step_over, desc = 'Debug: Step Over' },
@@ -25,50 +21,113 @@ return {
         end,
         desc = 'Debug: Set Breakpoint',
       },
-      -- Toggle to see last session result. Without this, you can't see session output in case of unhandled exception.
       { '<F7>', dapui.toggle, desc = 'Debug: See last session result.' },
+      { '<leader>dr', dap.restart, desc = 'Debug: [R]estart' },
+      { '<leader>dt', dap.terminate, desc = 'Debug: [T]erminate' },
+      {
+        '<leader>dh',
+        function()
+          require('dap.ui.widgets').hover()
+        end,
+        desc = 'Debug: Hover [H]',
+      },
+      {
+        '<leader>dk',
+        function()
+          local widgets = require 'dap.ui.widgets'
+          widgets.centered_float(widgets.scopes)
+        end,
+        desc = 'Debug: Show Scopes [K]',
+      },
+      {
+        '<leader>dp',
+        function()
+          require('dap.ui.widgets').preview()
+        end,
+        desc = 'Debug: [P]review value',
+      },
+      {
+        '<leader>da',
+        function()
+          require('dap').run {
+            type = 'delve',
+            name = 'Attach to dlv',
+            mode = 'remote',
+            request = 'attach',
+            substitutePath = {
+              { from = '${workspaceFolder}', to = vim.fn.getcwd() },
+            },
+          }
+        end,
+        desc = 'Debug: [A]ttach to dlv',
+      },
       unpack(keys),
     }
   end,
   config = function()
     local dap = require 'dap'
     local dapui = require 'dapui'
+    dap.set_log_level 'WARN'
 
-    require('mason-nvim-dap').setup {
-      -- Makes a best effort to setup the various debuggers with
-      -- reasonable debug configurations
-      automatic_installation = true,
+    -- Define breakpoint signs with line highlighting
+    vim.fn.sign_define('DapBreakpoint', {
+      text = '●',
+      texthl = 'DapBreakpoint',
+      linehl = 'DapBreakpointLine', -- Highlight entire line
+      numhl = 'DapBreakpoint', -- Also highlight line number
+    })
 
-      -- You can provide additional configuration to the handlers,
-      -- see mason-nvim-dap README for more information
-      handlers = {},
+    vim.fn.sign_define('DapBreakpointCondition', {
+      text = '◆',
+      texthl = 'DapBreakpoint',
+      linehl = 'DapBreakpointLine',
+      numhl = 'DapBreakpoint',
+    })
 
-      -- You'll need to check that you have the required things installed
-      -- online, please don't ask me how to install them :)
-      ensure_installed = {
-        -- Update this to ensure that you have the debuggers for the langs you want
-        'delve',
-      },
-    }
+    vim.fn.sign_define('DapStopped', {
+      text = '→',
+      texthl = 'DapStopped',
+      linehl = 'DapStoppedLine',
+      numhl = 'DapStopped',
+    })
+    vim.fn.sign_define('DapBreakpointRejected', {
+      text = '○',
+      texthl = 'DapBreakpointRejected',
+      linehl = '',
+      numhl = '',
+    })
+    local rose_pine = require 'rose-pine.palette'
 
-    -- Dap UI setup
-    -- For more information, see |:help nvim-dap-ui|
+    vim.api.nvim_set_hl(0, 'DapBreakpoint', { fg = rose_pine.love })
+    vim.api.nvim_set_hl(0, 'DapBreakpointRejected', { fg = rose_pine.muted })
+    vim.api.nvim_set_hl(0, 'DapStopped', { fg = rose_pine.foam })
+    vim.api.nvim_set_hl(0, 'DapStoppedLine', { bg = rose_pine.highlight_med, bold = true })
+    vim.api.nvim_set_hl(0, 'DapBreakpointLine', { bg = '#5e3548' }) -- Subtle rose-pine overlay
+
     dapui.setup {
-      -- Set icons to characters that are more likely to work in every terminal.
-      --    Feel free to remove or use ones that you like more! :)
-      --    Don't feel like these are good choices.
       icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
-      controls = {
-        icons = {
-          pause = '⏸',
-          play = '▶',
-          step_into = '⏎',
-          step_over = '⏭',
-          step_out = '⏮',
-          step_back = 'b',
-          run_last = '▶▶',
-          terminate = '⏹',
-          disconnect = '⏏',
+      mappings = {
+        expand = { '<CR>' },
+        open = 'o',
+        remove = 'd',
+        edit = 'e',
+        repl = 'r',
+        toggle = 't',
+      },
+      layouts = {
+        {
+          elements = {
+            { id = 'scopes', size = 0.75 },
+            { id = 'breakpoints', size = 0.25 },
+          },
+          size = 15,
+          position = 'bottom',
+        },
+      },
+      floating = {
+        border = 'rounded',
+        mappings = {
+          close = { 'q', '<Esc>' },
         },
       },
     }
@@ -77,13 +136,15 @@ return {
     dap.listeners.before.event_terminated['dapui_config'] = dapui.close
     dap.listeners.before.event_exited['dapui_config'] = dapui.close
 
-    -- Install golang specific config
     require('dap-go').setup {
       delve = {
-        -- On Windows delve must be run attached or it crashes.
-        -- See https://github.com/leoluz/nvim-dap-go/blob/main/README.md#configuring
         detached = vim.fn.has 'win32' == 0,
       },
+    }
+    dap.adapters.delve = {
+      type = 'server',
+      host = '127.0.0.1',
+      port = 2345,
     }
   end,
 }
