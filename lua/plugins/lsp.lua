@@ -5,7 +5,8 @@ return {
       { 'j-hui/fidget.nvim', opts = {} },
     },
     config = function()
-      require('lspconfig.ui.windows').default_options = { border = 'rounded' }
+      vim.lsp.handlers['textDocument/hover'] = vim.lsp.with(vim.lsp.handlers.hover, { border = 'rounded' })
+      vim.lsp.handlers['textDocument/signatureHelp'] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = 'rounded' })
 
       vim.api.nvim_create_autocmd('LspAttach', {
         group = vim.api.nvim_create_augroup('lsp-attach', { clear = true }),
@@ -65,39 +66,30 @@ return {
 
       local capabilities = require('blink.cmp').get_lsp_capabilities()
 
-      local servers = {
-        lua_ls = {
-          settings = {
-            Lua = {
-              completion = { callSnippet = 'Replace' },
-              diagnostics = { disable = { 'missing-fields' } },
-              workspace = { checkThirdParty = false },
-              telemetry = { enable = false },
-            },
-          },
-        },
-        gopls = {
-          settings = {
-            gopls = {
-              analyses = { unusedparams = true, shadow = true },
-              staticcheck = true,
-              gofumpt = true,
-            },
-          },
-        },
-        zls = {},
-        tailwindcss = {},
-        html = {},
-        cssls = {},
-        jsonls = {},
-        yamlls = {},
-        bashls = {},
-      }
+      vim.lsp.config('*', { capabilities = capabilities })
 
-      for server, config in pairs(servers) do
-        config.capabilities = capabilities
-        require('lspconfig')[server].setup(config)
-      end
+      vim.lsp.config('lua_ls', {
+        settings = {
+          Lua = {
+            completion = { callSnippet = 'Replace' },
+            diagnostics = { disable = { 'missing-fields' } },
+            workspace = { checkThirdParty = false },
+            telemetry = { enable = false },
+          },
+        },
+      })
+
+      vim.lsp.config('gopls', {
+        settings = {
+          gopls = {
+            analyses = { unusedparams = true, shadow = true },
+            staticcheck = true,
+            gofumpt = true,
+          },
+        },
+      })
+
+      vim.lsp.enable { 'lua_ls', 'gopls', 'zls', 'tailwindcss', 'html', 'cssls', 'jsonls', 'yamlls', 'bashls' }
 
       vim.diagnostic.config {
         virtual_text = {
