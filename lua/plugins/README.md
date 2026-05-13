@@ -155,7 +155,7 @@ When a project is selected, snacks: changes cwd with `vim.cmd('cd ...')`, emits 
 
 ## Fuzzy Finder — `telescope.lua`
 
-**Plugins:** `nvim-telescope/telescope.nvim` + fzf-native + ui-select + file-browser + project extensions
+**Plugins:** `nvim-telescope/telescope.nvim` + fzf-native + ui-select
 
 Layout: 90% width/height, prompt at bottom, preview cuts off at 180 cols.
 
@@ -177,18 +177,9 @@ Layout: 90% width/height, prompt at bottom, preview cuts off at 180 cols.
 | `<leader>/` | Fuzzy search in current buffer |
 | `<leader>s/` | Live grep across open files |
 | `<leader>sn` | Search neovim config files |
-| `<leader>sp` | Project switcher |
+| `<leader>sp` | Project switcher (delegates to `Snacks.picker.projects()`) |
 | `<leader>st` | Search TODO comments |
 | `<leader>pt` | Pomodoro timer picker |
-| `<space>fb` | File browser |
-
-### Project Switcher
-
-Base directories scanned: `~/projects/`, `~/.config/nvim`, `~/.config/sway`, `~/.config/ghostty`, `~/.config/waybar`, `~/.config/rofi`, `~/.config/clipse`.
-
-On project selection: cds into the project and emits OSC 7 so the terminal follows.
-
-In-picker project actions: `<c-a>` add · `<c-v>` rename · `<c-d>` delete · `<c-f>` find files · `<c-b>` browse files · `<c-s>` search in project · `<c-r>` recent files · `<c-l>` change working dir.
 
 ---
 
@@ -232,9 +223,8 @@ Shows `┃` in the sign column for added/changed lines, `~` for changed+deleted.
 
 | Key | Action |
 |-----|--------|
-| `<leader>gb` | Blame current line |
-| `<leader>gd` | Diff against index |
-| `<leader>gD` | Diff against last commit |
+| `<leader>gdi` | Diff against index |
+| `<leader>gdc` | Diff against last commit |
 | `<leader>tD` | Preview hunk inline |
 
 ---
@@ -283,6 +273,22 @@ Hash store location: `vim.fn.stdpath('data') .. '/config-local'`.
 
 ---
 
+## Auto-pairs & Surround — `mini.lua`
+
+**Plugins:** `echasnovski/mini.pairs` + `echasnovski/mini.surround`
+
+**mini.pairs** auto-closes brackets, quotes, and braces. Toggle with `\p` (reads `vim.b.minipairs_disable`).
+
+**mini.surround** adds surround text-object operations:
+
+| Key | Action |
+|-----|--------|
+| `sa` | Add surrounding (e.g. `saiw"` wraps word in quotes) |
+| `sd` | Delete surrounding |
+| `sr` | Replace surrounding |
+
+---
+
 ## Status Line — `lualine.lua`
 
 **Plugin:** `nvim-lualine/lualine.nvim`
@@ -291,7 +297,7 @@ Global statusline (single bar across all windows) using the rose-pine theme.
 
 Sections: mode | branch + diff + diagnostics | relative filename | encoding + fileformat + filetype | progress | location.
 
-Disabled on `dashboard` and `alpha` filetypes. Extensions: toggleterm, fugitive, mason, lazy.
+Disabled on `dashboard` and `alpha` filetypes. Extensions: toggleterm, fugitive, lazy.
 
 ---
 
@@ -309,7 +315,7 @@ These don't have their own file in `lua/plugins/`.
 | `folke/todo-comments.nvim` | Highlights and searches TODO/FIXME/HACK/etc. |
 | `tpope/vim-sleuth` | Auto-detects tabstop and shiftwidth from file content |
 | `catgoose/nvim-colorizer.lua` | Highlights hex colour codes inline |
-| `rcarriga/nvim-notify` | Floating notification UI (replaces `vim.notify`) |
+| `rcarriga/nvim-notify` | Floating notification UI — sets `vim.notify` in its own `config` |
 | `m00qek/baleia.nvim` | Renders ANSI escape codes in buffers (`:BaleiaColorize`) |
 | `registerGen/clock.nvim` | Clock display |
 

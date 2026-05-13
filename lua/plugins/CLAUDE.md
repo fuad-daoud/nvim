@@ -74,7 +74,7 @@ Central hub for many UX features via `folke/snacks.nvim`.
 
 ## telescope.lua
 
-Fuzzy finder. Extensions loaded: `fzf`, `ui-select`, `file_browser`.
+Fuzzy finder. Extensions loaded: `fzf`, `ui-select`.
 
 | Key | Action |
 |-----|--------|
@@ -88,14 +88,11 @@ Fuzzy finder. Extensions loaded: `fzf`, `ui-select`, `file_browser`.
 | `<leader>sr` | Resume last picker |
 | `<leader>s.` | Recent files |
 | `<leader><leader>` | Open buffers |
-| `<leader>sp` | Project switcher (telescope-project) |
+| `<leader>sp` | Project switcher (delegates to `Snacks.picker.projects()`) |
 | `<leader>st` | Todo comments |
 | `<leader>sn` | Search neovim config files |
 | `<leader>/` | Fuzzy search current buffer |
 | `<leader>s/` | Live grep open files |
-| `<space>fb` | File browser |
-
-Project base dirs: `~/projects/`, `~/.config/nvim`, `~/.config/sway`, `~/.config/ghostty`, `~/.config/waybar`, `~/.config/rofi`, `~/.config/clipse`. On project select: cds into it and emits OSC 7.
 
 ## treesitter.lua
 
@@ -118,9 +115,8 @@ Sign column git indicators. Keymaps (buffer-local):
 
 | Key | Action |
 |-----|--------|
-| `<leader>gb` | Blame line |
-| `<leader>gd` | Diff against index |
-| `<leader>gD` | Diff against last commit |
+| `<leader>gdi` | Diff against index |
+| `<leader>gdc` | Diff against last commit |
 | `<leader>tD` | Preview hunk inline |
 
 ## config-local.lua
@@ -133,6 +129,12 @@ Loads `.nvim.lua` or `.nvimrc` from the project root when present. Used for per-
 - **undotree**: toggle with `<leader>u` (keymap in `lua/scripts/keymaps.lua`)
 - **pomo**: pomodoro timer; timers browsable via `<leader>pt` (Telescope extension)
 
+## mini.lua
+
+Two mini.echasnovski plugins:
+- **`mini.pairs`** — auto-closes brackets, quotes, etc. Toggle with `\p` (snacks toggle reads `vim.b.minipairs_disable`).
+- **`mini.surround`** — add/delete/replace surrounds. Default mappings: `sa` add · `sd` delete · `sr` replace.
+
 ## lualine.lua
 
-Status line with rose-pine theme. Global statusline. Shows: mode, branch, diff, diagnostics, relative filename, encoding, filetype, progress, location.
+Status line with rose-pine theme. Global statusline. Shows: mode, branch, diff, diagnostics, relative filename, encoding, filetype, progress, location. Extensions: toggleterm, fugitive, lazy.
