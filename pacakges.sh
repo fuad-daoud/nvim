@@ -16,3 +16,7 @@ go install github.com/go-delve/delve/cmd/dlv@latest
 
 # Templ
 go install github.com/a-h/templ/cmd/templ@latest
+
+
+
+yay -S delv
