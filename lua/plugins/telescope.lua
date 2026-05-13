@@ -1,14 +1,4 @@
 return {
-  {
-    'nvim-telescope/telescope-file-browser.nvim',
-    dependencies = { 'nvim-telescope/telescope.nvim', 'nvim-lua/plenary.nvim' },
-  },
-  {
-    'nvim-telescope/telescope-project.nvim',
-    dependencies = {
-      'nvim-telescope/telescope.nvim',
-    },
-  },
   { -- Fuzzy Finder (files, lsp, etc)
     'nvim-telescope/telescope.nvim',
     event = 'VimEnter',
@@ -23,7 +13,6 @@ return {
         end,
       },
       { 'nvim-telescope/telescope-ui-select.nvim' },
-
       { 'nvim-tree/nvim-web-devicons', enabled = vim.g.have_nerd_font },
     },
     config = function()
@@ -42,77 +31,14 @@ return {
           },
         },
         extensions = {
-          file_browser = {
-            theme = 'ivy',
-            hijack_netrw = false,
-            mappings = {
-              ['i'] = {
-                -- your custom insert mode mappings
-              },
-              ['n'] = {
-                -- your custom normal mode mappings
-              },
-            },
-          },
           ['ui-select'] = {
             require('telescope.themes').get_dropdown(),
-          },
-          project = {
-            display_type = 'full',
-            base_dirs = {
-              '~/projects/',
-              '~/.config/nvim',
-              '~/.config/sway',
-              '~/.config/ghostty',
-              '~/.config/waybar',
-              '~/.config/rofi',
-              '~/.config/clipse',
-            },
-            ignore_missing_dirs = true,
-            theme = 'dropdown',
-            order_by = 'asc',
-            search_by = { 'title', 'path' },
-            hidden_files = true,
-            sync_with_nvim_tree = true,
-            on_project_selected = function(prompt_bufnr)
-              local actions = require 'telescope.actions'
-              local action_state = require 'telescope.actions.state'
-              local entry = action_state.get_selected_entry()
-
-              actions.close(prompt_bufnr)
-
-              if entry then
-                local project_path = entry.value
-                vim.cmd('cd ' .. vim.fn.fnameescape(project_path))
-                vim.notify('Changed directory to: ' .. project_path, vim.log.levels.INFO)
-
-                -- Update terminal with OSC 7
-                local cwd = vim.fn.getcwd()
-                local osc7_cwd = string.format('\027]7;file://%s%s\027\\', vim.fn.hostname(), cwd)
-                io.write(osc7_cwd)
-
-                vim.cmd.Ex {}
-              end
-            end,
-            i = {
-              ['<c-d>'] = require('telescope._extensions.project.actions').delete_project,
-              ['<c-v>'] = require('telescope._extensions.project.actions').rename_project,
-              ['<c-a>'] = require('telescope._extensions.project.actions').add_project,
-              ['<c-A>'] = require('telescope._extensions.project.actions').add_project_cwd,
-              ['<c-f>'] = require('telescope._extensions.project.actions').find_project_files,
-              ['<c-b>'] = require('telescope._extensions.project.actions').browse_project_files,
-              ['<c-s>'] = require('telescope._extensions.project.actions').search_in_project_files,
-              ['<c-r>'] = require('telescope._extensions.project.actions').recent_project_files,
-              ['<c-l>'] = require('telescope._extensions.project.actions').change_working_directory,
-              ['<c-o>'] = require('telescope._extensions.project.actions').next_cd_scope,
-            },
           },
         },
       }
 
       pcall(require('telescope').load_extension, 'fzf')
       pcall(require('telescope').load_extension, 'ui-select')
-      pcall(require('telescope').load_extension, 'file_browser')
 
       local builtin = require 'telescope.builtin'
       vim.keymap.set('n', '<leader>sh', builtin.help_tags, { desc = '[S]earch [H]elp' })
@@ -129,7 +55,9 @@ return {
       vim.keymap.set('n', '<leader>pt', function()
         require('telescope').extensions.pomodori.timers()
       end, { desc = 'Manage Pomodori Timers' })
-      vim.keymap.set('n', '<leader>sp', require('telescope').extensions.project.project, { desc = '[S]earch [P]rojects' })
+      vim.keymap.set('n', '<leader>sp', function()
+        Snacks.picker.projects()
+      end, { desc = '[S]earch [P]rojects' })
       vim.keymap.set('n', '<leader>st', '<cmd>TodoTelescope<cr>', { desc = 'Search Todos' })
       vim.keymap.set('n', '<leader>/', function()
         builtin.current_buffer_fuzzy_find(require('telescope.themes').get_dropdown {
@@ -151,13 +79,9 @@ return {
         }
       end, { desc = '[S]earch [/] in Open Files' })
 
-      -- Shortcut for searching your Neovim configuration files
       vim.keymap.set('n', '<leader>sn', function()
         builtin.find_files { cwd = vim.fn.stdpath 'config' }
       end, { desc = '[S]earch [N]eovim files' })
-      vim.keymap.set('n', '<space>fb', function()
-        require('telescope').extensions.file_browser.file_browser()
-      end)
     end,
   },
 }

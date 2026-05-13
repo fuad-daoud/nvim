@@ -55,7 +55,6 @@ return {
     extensions = {
       'toggleterm',
       'fugitive',
-      'mason',
       'lazy',
     },
   },

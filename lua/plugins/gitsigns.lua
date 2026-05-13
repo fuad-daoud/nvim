@@ -27,11 +27,10 @@ return {
           vim.keymap.set(mode, l, r, opts)
         end
 
-        map('n', '<leader>gb', gitsigns.blame_line, { desc = '[G]it [b]lame line' })
-        map('n', '<leader>gd', gitsigns.diffthis, { desc = '[G]it [d]iff against index' })
-        map('n', '<leader>gD', function()
+        map('n', '<leader>gdi', gitsigns.diffthis, { desc = '[G]it [D]iff against [I]ndex' })
+        map('n', '<leader>gdc', function()
           gitsigns.diffthis '@'
-        end, { desc = '[G]it [D]iff against last commit' })
+        end, { desc = '[G]it [D]iff against last [C]ommit' })
         map('n', '<leader>tD', gitsigns.preview_hunk_inline, { desc = '[T]oggle git show [D]eleted' })
       end,
     },

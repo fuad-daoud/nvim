@@ -18,15 +18,25 @@ vim.api.nvim_create_autocmd('BufWritePre', {
   pattern = '*.go',
   callback = function()
     vim.lsp.buf.code_action {
-      context = { only = { 'source.organizeImports' }, diagnostics = vim.lsp.diagnostic.get_line_diagnostics() },
+      context = { only = { 'source.organizeImports' } },
       apply = true,
     }
   end,
 })
--- Add after the LspAttach autocmd block (around line 50)
 vim.api.nvim_create_autocmd('CursorHoldI', {
   group = vim.api.nvim_create_augroup('lsp-signature', { clear = true }),
   callback = function()
     vim.lsp.buf.signature_help()
+  end,
+})
+
+vim.api.nvim_create_autocmd('BufWritePre', {
+  group = vim.api.nvim_create_augroup('remove-trails', { clear = true }),
+  callback = function()
+    if vim.b.remove_trails_enabled ~= false then
+      local save = vim.fn.winsaveview()
+      vim.cmd [[%s/\s\+$//e]]
+      vim.fn.winrestview(save)
+    end
   end,
 })

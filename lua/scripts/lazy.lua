@@ -67,47 +67,38 @@ require('lazy').setup({
       notify_on_error = false,
       format_on_save = function(bufnr)
         local disable_filetypes = { c = true, cpp = true }
-        local lsp_format_opt
-
         if disable_filetypes[vim.bo[bufnr].filetype] then
           return nil
         else
           return {
             timeout_ms = 500,
-            lsp_format = lsp_format_opt,
+            lsp_format = 'fallback',
           }
         end
       end,
-      -- formatters = {
-      --   mix = {
-      --     command = 'mix',
-      --     args = { 'format', '-' },
-      --     stdin = true,
-      --   },
-      -- },
       formatters_by_ft = {
         lua = { 'stylua' },
-        css = { 'prettied', 'prettier' },
-        graphql = { 'prettied', 'prettier' },
-        -- html = { 'prettied', 'prettier' },
-        javascript = { 'prettied', 'prettier' },
-        javascriptreact = { 'prettied', 'prettier' },
-        json = { 'prettied', 'prettier' },
-        -- markdown = { 'prettied', 'prettier' },
+        css = { 'prettierd', 'prettier' },
+        graphql = { 'prettierd', 'prettier' },
+        javascript = { 'prettierd', 'prettier' },
+        javascriptreact = { 'prettierd', 'prettier' },
+        json = { 'prettierd', 'prettier' },
         python = { 'isort', 'black' },
         sql = { 'sql-formatter' },
-        svelte = { 'prettied', 'prettier' },
-        typescript = { 'prettied', 'prettier', 'sql-formatter' },
-        typescriptreact = { 'prettied', 'prettier' },
-        yaml = { 'prettied' },
-        elixir = { 'prettied' },
-        -- elixir = { 'mix' },
-        -- eelixir = { 'mix' },
-        -- heex = { 'mix' },
+        svelte = { 'prettierd', 'prettier' },
+        typescript = { 'prettierd', 'prettier', 'sql-formatter' },
+        typescriptreact = { 'prettierd', 'prettier' },
+        yaml = { 'prettierd' },
+        elixir = { 'prettierd' },
       },
     },
   },
-  { 'rcarriga/nvim-notify' },
+  {
+    'rcarriga/nvim-notify',
+    config = function()
+      vim.notify = require 'notify'
+    end,
+  },
   {
     'rose-pine/neovim',
     name = 'rose-pine',

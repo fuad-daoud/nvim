@@ -22,7 +22,6 @@ vim.opt.wildignore = '*node_modules/**'
 vim.opt.wrap = false
 vim.opt.termguicolors = true
 vim.opt.conceallevel = 1
-vim.notify = require 'notify'
 
 vim.g.terminal_color_0 = '#2a273f' -- black
 vim.g.terminal_color_1 = '#eb6f92' -- red
