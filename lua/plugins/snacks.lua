@@ -50,7 +50,6 @@ return {
 ]],
         keys = {
           { icon = ' ', key = 'r', desc = 'Recent Files', action = ":lua Snacks.dashboard.pick('oldfiles')" },
-          { icon = '🏌️', key = 'l', desc = 'Golf Today', action = ':Golf Today' },
           { icon = '󰈙 ', key = 'n', desc = 'New File', action = ':ene | startinsert' },
           { icon = '󰈙 ', key = 'f', desc = 'File explorer', action = ':lua Snacks.explorer()' },
           { icon = '󰈙 ', key = 'p', desc = 'Projects', action = ':lua Snacks.picker.projects()' },

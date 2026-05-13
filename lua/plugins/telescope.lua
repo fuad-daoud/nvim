@@ -75,11 +75,24 @@ return {
             hidden_files = true,
             sync_with_nvim_tree = true,
             on_project_selected = function(prompt_bufnr)
-              require('telescope._extensions.project.actions').change_working_directory(prompt_bufnr, false)
-              vim.cmd.Ex {}
-              local cwd = vim.fn.getcwd()
-              local osc7_cwd = string.format('\027]7;file://%s%s\027\\', vim.fn.hostname(), cwd)
-              io.write(osc7_cwd)
+              local actions = require 'telescope.actions'
+              local action_state = require 'telescope.actions.state'
+              local entry = action_state.get_selected_entry()
+
+              actions.close(prompt_bufnr)
+
+              if entry then
+                local project_path = entry.value
+                vim.cmd('cd ' .. vim.fn.fnameescape(project_path))
+                vim.notify('Changed directory to: ' .. project_path, vim.log.levels.INFO)
+
+                -- Update terminal with OSC 7
+                local cwd = vim.fn.getcwd()
+                local osc7_cwd = string.format('\027]7;file://%s%s\027\\', vim.fn.hostname(), cwd)
+                io.write(osc7_cwd)
+
+                vim.cmd.Ex {}
+              end
             end,
             i = {
               ['<c-d>'] = require('telescope._extensions.project.actions').delete_project,

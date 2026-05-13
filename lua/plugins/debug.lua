@@ -123,6 +123,13 @@ return {
           size = 15,
           position = 'bottom',
         },
+        {
+          elements = {
+            { id = 'repl', size = 1.0 },
+          },
+          size = 50,
+          position = 'right',
+        },
       },
       floating = {
         border = 'rounded',
