@@ -32,7 +32,7 @@ Must load before `lazy.lua` — lazy.nvim reads `mapleader` at setup time when r
 | `timeoutlen` | 300ms | Shorter wait for key sequences |
 | `scrolloff` | 20 | Keeps cursor far from screen edges |
 | `wrap` | false | No line wrapping |
-| `conceallevel` | 1 | Enables Obsidian/markdown conceals |
+| `conceallevel` | 1 | Enables markdown conceals |
 
 ### Search
 
@@ -115,17 +115,6 @@ Flashes the yanked region after every yank (`TextYankPost`). Uses the built-in `
 ### Telescope Preview
 
 Forces `number = true` in Telescope previewer windows (`User TelescopePreviewerLoaded`).
-
-### Obsidian Sync
-
-Triggers `sync.sh` (rclone bisync to Contabo) for any `*.md` / `*.markdown` file opened or saved under `~/vaults/`.
-
-- **On open** (`BufReadPost`): syncs then reloads the buffer to show remote changes, restoring cursor position.
-- **On save** (`BufWritePost`): syncs after writing.
-
-Both show a statusline message while syncing and notify on success or failure. The sync script path is hardcoded to `/home/fuad/.config/nvim/sync.sh`.
-
-`sync.sh` runs `rclone bisync` between `contabo:obsidian` and `~/vaults` with conflict resolution favouring the newer file.
 
 ### Go Import Organisation
 

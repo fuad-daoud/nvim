@@ -55,7 +55,7 @@ Central hub for many UX features via `folke/snacks.nvim`.
 
 **Enabled modules**: `bigfile`, `quickfile`, `picker` (with custom project confirm), `dashboard`, `indent`, `lazygit`, `words`.
 
-**Dashboard keys**: `r` recent files, `n` new file, `f` file explorer, `p` projects, `t/y` Obsidian today/yesterday, `g` general thoughts, `c` config files, `z` Lazy, `q` quit.
+**Dashboard keys**: `r` recent files, `n` new file, `f` file explorer, `p` projects, `c` config files, `z` Lazy, `q` quit.
 
 **Git keymaps** (global):
 | Key | Action |
@@ -100,20 +100,6 @@ Project base dirs: `~/projects/`, `~/.config/nvim`, `~/.config/sway`, `~/.config
 ## treesitter.lua
 
 Auto-installs parsers. Pre-installed: bash, c, diff, html, lua, luadoc, markdown, query, vim, vimdoc, go, rust, zig, dockerfile. Includes a custom **templ** parser from `virschmann/tree-sitter-templ`.
-
-## obsidian.lua
-
-Workspaces: `~/vaults/personal` and `~/vaults/progressoft`. File sync on read/write is handled by autocmds in `lua/scripts/autocmd.lua`.
-
-| Key | Action |
-|-----|--------|
-| `<leader>ot` | Today's daily note |
-| `<leader>om` | Tomorrow's daily note |
-| `<leader>oy` | Yesterday's daily note |
-| `<leader>od` | Browse dailies |
-| `<leader>os` | Search vault |
-| `<leader>oqs` | Quick switch |
-| `<leader>ow` | Switch workspace |
 
 ## toggleterm.lua
 

@@ -40,7 +40,6 @@ lua/
   plugins/
     *.lua                 ← one plugin spec per file
 pacakges.sh               ← system package installer
-sync.sh                   ← rclone bisync for Obsidian vaults
 .stylua.toml              ← Lua formatter config
 ```
 

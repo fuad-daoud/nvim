@@ -16,7 +16,7 @@ Vim options. Notable non-defaults:
 - `scrolloff = 20` — keeps cursor well away from screen edges
 - `guicursor = 'n-v-i-c:block'` — block cursor in all modes
 - `clipboard = 'unnamedplus,unnamed'` — system clipboard by default
-- `conceallevel = 1` — needed for Obsidian rendering
+- `conceallevel = 1` — enables markdown concealment (e.g. hide link syntax)
 - `vim.notify = require 'notify'` — replaces the built-in notify with nvim-notify (must load after plugins)
 
 ## keymaps.lua
@@ -40,9 +40,5 @@ Global keymaps (buffer-local LSP keymaps are in `lua/plugins/lsp.lua`).
 |---------|---------|--------|
 | `highlight-yank` | `TextYankPost` | Flash yanked region |
 | TelescopePreviewerLoaded | `User` | Force line numbers in preview |
-| ObsidianSync (read) | `BufReadPost *.md` in `~/vaults/` | Runs `sync.sh`, reloads buffer |
-| ObsidianSync (write) | `BufWritePost *.md` in `~/vaults/` | Runs `sync.sh` |
 | GoFormat | `BufWritePre *.go` | Applies `source.organizeImports` via LSP code action |
 | lsp-signature | `CursorHoldI` | Shows signature help in insert mode |
-
-The Obsidian sync autocmds call `/home/fuad/.config/nvim/sync.sh` (rsync to Contabo). The path is hardcoded — update it if the config moves.

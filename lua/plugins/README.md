@@ -108,9 +108,6 @@ Opens on launch. Quick-access keys:
 | `n` | New file |
 | `f` | File explorer |
 | `p` | Project picker |
-| `t` | Obsidian Today |
-| `y` | Obsidian Yesterday |
-| `g` | General thoughts note |
 | `c` | Browse neovim config files |
 | `z` | Open Lazy |
 | `q` | Quit |
@@ -204,33 +201,6 @@ In-picker project actions: `<c-a>` add · `<c-v>` rename · `<c-d>` delete · `<
 Pre-installed parsers: `bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `vim`, `vimdoc`, `go`, `rust`, `zig`, `dockerfile`.
 
 Includes a custom **templ** parser (`virschmann/tree-sitter-templ`) for Go templating with the `a-h/templ` tool. Markdown uses additional vim regex highlighting for correct indent behaviour.
-
----
-
-## Notes — `obsidian.lua`
-
-**Plugin:** `epwalsh/obsidian.nvim`
-
-### Workspaces
-
-| Name | Path |
-|------|------|
-| `personal` | `~/vaults/personal` |
-| `work` | `~/vaults/progressoft` |
-
-Vault files sync automatically on open/save via `sync.sh` (rclone bisync to Contabo) — configured in `lua/scripts/autocmd.lua`.
-
-### Keymaps
-
-| Key | Action |
-|-----|--------|
-| `<leader>ot` | Open today's daily note |
-| `<leader>om` | Open tomorrow's daily note |
-| `<leader>oy` | Open yesterday's daily note |
-| `<leader>od` | Browse all daily notes |
-| `<leader>os` | Search vault |
-| `<leader>oqs` | Quick switch between notes |
-| `<leader>ow` | Switch workspace |
 
 ---
 
