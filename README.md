@@ -39,6 +39,7 @@ lua/
     opt.lua               ← vim options
   plugins/
     *.lua                 ← one plugin spec per file
+  utils.lua               ← shared helpers (OSC 7, etc.)
 pacakges.sh               ← system package installer
 .stylua.toml              ← Lua formatter config
 ```
@@ -51,7 +52,7 @@ pacakges.sh               ← system package installer
 2. **`lazy.lua`** — bootstraps lazy.nvim, registers inline plugins, imports `lua/plugins/`
 3. **`autocmd.lua`** — registers all autocommands
 4. **`keymaps.lua`** — registers global keymaps
-5. **`opt.lua`** — sets vim options (including overriding `vim.notify` with nvim-notify)
+5. **`opt.lua`** — sets vim options
 
 Setup must run before lazy so that `mapleader` is set before any plugin keymaps are registered.
 

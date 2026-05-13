@@ -17,7 +17,6 @@ Vim options. Notable non-defaults:
 - `guicursor = 'n-v-i-c:block'` — block cursor in all modes
 - `clipboard = 'unnamedplus,unnamed'` — system clipboard by default
 - `conceallevel = 1` — enables markdown concealment (e.g. hide link syntax)
-- `vim.notify = require 'notify'` — replaces the built-in notify with nvim-notify (must load after plugins)
 
 ## keymaps.lua
 
@@ -27,12 +26,12 @@ Global keymaps (buffer-local LSP keymaps are in `lua/plugins/lsp.lua`).
 |-----|--------|
 | `<leader>pv` | Open netrw (`:Ex`) |
 | `<leader>u` | Toggle undotree |
-| `<C-hjkl>` | Window navigation |
+| `<C-h>` / `<C-l>` | Move focus left/right window |
+| `<C-j>` / `<C-k>` | Move current line down/up (normal mode) |
 | `<Esc>` | Clear search highlight |
 | `<leader>q` | Populate loclist with diagnostics |
 | `<Esc><Esc>` (terminal) | Exit terminal mode |
 | `J` / `K` (visual) | Move selected lines down/up |
-| `J` / `K` (normal) | Move current line down/up |
 
 ## autocmd.lua
 
@@ -42,3 +41,4 @@ Global keymaps (buffer-local LSP keymaps are in `lua/plugins/lsp.lua`).
 | TelescopePreviewerLoaded | `User` | Force line numbers in preview |
 | GoFormat | `BufWritePre *.go` | Applies `source.organizeImports` via LSP code action |
 | lsp-signature | `CursorHoldI` | Shows signature help in insert mode |
+| remove-trails | `BufWritePre` | Strips trailing whitespace (respects `vim.b.remove_trails_enabled`; toggle with `\T`) |

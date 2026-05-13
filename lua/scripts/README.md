@@ -73,10 +73,6 @@ Must load before `lazy.lua` — lazy.nvim reads `mapleader` at setup time when r
 
 Rose-pine moon palette wired into terminal colours 0–7 (black, red, green, yellow, blue, magenta, cyan, white).
 
-### Notify Override
-
-`vim.notify` is replaced with `require 'notify'` (nvim-notify) so all notifications use the floating UI. This runs in `opt.lua` which loads after `lazy.lua` so the plugin is available.
-
 ---
 
 ## keymaps.lua
@@ -87,7 +83,7 @@ Global keymaps. Buffer-local LSP keymaps live in `lua/plugins/lsp.lua`.
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `<C-h/j/k/l>` | Normal | Move focus between windows |
+| `<C-h>` / `<C-l>` | Normal | Move focus left / right window |
 | `<A-h/j/k/l>` | Normal/Terminal | Move focus between windows (also set in toggleterm) |
 | `<Esc>` | Normal | Clear search highlight |
 | `<Esc><Esc>` | Terminal | Exit terminal mode |
@@ -99,7 +95,7 @@ Global keymaps. Buffer-local LSP keymaps live in `lua/plugins/lsp.lua`.
 | `<leader>pv` | Normal | Open netrw (`:Ex`) |
 | `<leader>u` | Normal | Toggle undotree |
 | `J` / `K` | Visual | Move selected lines down / up |
-| `J` / `K` | Normal | Move current line down / up |
+| `<C-j>` / `<C-k>` | Normal | Move current line down / up |
 | `<leader>q` | Normal | Open diagnostics in loclist |
 
 Arrow keys in normal mode are disabled with a hint message to use `h/j/k/l`.
@@ -123,3 +119,7 @@ On `BufWritePre` for `*.go` files, fires `source.organizeImports` via LSP code a
 ### LSP Signature Help
 
 On `CursorHoldI` (any buffer), calls `vim.lsp.buf.signature_help()` to show function signatures while typing arguments.
+
+### Trailing Whitespace Removal
+
+On `BufWritePre`, strips trailing whitespace from all lines. Controlled per-buffer by `vim.b.remove_trails_enabled` (defaults to enabled). Toggle with `\T` (snacks toggle).

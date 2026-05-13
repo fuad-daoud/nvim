@@ -46,3 +46,7 @@ Plugins live in two places:
 - **`lua/plugins/*.lua`**: one spec per file, all auto-imported via `{ import = 'plugins' }`
 
 See `lua/plugins/CLAUDE.md` for details on each plugin file.
+
+### Shared Utilities
+
+`lua/utils.lua` — small module for helpers shared across plugin specs. Currently exports `emit_osc7(cwd?)` which writes an OSC 7 terminal CWD notification (used by snacks project picker).
