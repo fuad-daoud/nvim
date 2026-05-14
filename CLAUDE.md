@@ -20,6 +20,7 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
    - AUR LSPs: `zls tailwindcss-language-server`
    - Formatters: `prettier stylua shfmt shellcheck yamllint prettierd actionlint jq`
    - Go tools: `goimports`, `golines`, `gomodifytags`, `dlv`, `templ` via `go install`
+   - Markdown/mermaid rendering: `imagemagick luarocks` via pacman, then `luarocks --lua-version 5.1 install magick --local` and `npm install -g @mermaid-js/mermaid-cli`
 
 2. Base system prereqs (from `init.lua` comment): `pacman -S git neovim npm unzip go zig`
 
@@ -46,6 +47,12 @@ Plugins live in two places:
 - **`lua/plugins/*.lua`**: one spec per file, all auto-imported via `{ import = 'plugins' }`
 
 See `lua/plugins/CLAUDE.md` for details on each plugin file.
+
+### Markdown Notes
+
+`init.lua` prepends luarocks Lua 5.1 paths to `package.path`/`package.cpath` so Neovim (LuaJIT) can load the `magick` LuaRock needed by `image.nvim`.
+
+`lua/plugins/treesitter.lua` patches the `set-lang-from-info-string!` treesitter directive with `{ force = true }` because nvim-treesitter (archived) was written for an older Neovim API where `match[id]` returned a bare `TSNode`; Neovim 0.11+ passes `(TSNode|nil)[]`. The patch unwraps the array form safely.
 
 ### Shared Utilities
 

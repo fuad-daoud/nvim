@@ -129,6 +129,20 @@ Loads `.nvim.lua` or `.nvimrc` from the project root when present. Used for per-
 - **undotree**: toggle with `<leader>u` (keymap in `lua/scripts/keymaps.lua`)
 - **pomo**: pomodoro timer; timers browsable via `<leader>pt` (Telescope extension)
 
+## markdown.lua
+
+Two plugins for markdown files:
+
+**`render-markdown.nvim`** — visual in-editor rendering of headers, bold/italic, tables, code blocks, checkboxes, and list bullets using treesitter + extmarks. Loaded on `ft = markdown`.
+
+**`image.nvim`** — renders images inline in the terminal via Kitty Graphics Protocol. Configured for `backend = 'kitty'`, markdown/neorg integrations disabled (rendering is handled manually). Requires the `magick` LuaRock (Lua 5.1) and `imagemagick` system package.
+
+Mermaid diagram rendering is implemented in the `config` function of `image.nvim`:
+- `find_mermaid_blocks(buf)` walks the treesitter AST via `node:iter_children()` to find `fenced_code_block` nodes with info string `mermaid`, returns `{ code, row }[]`
+- `render_mermaid(buf)` writes each block to `~/.cache/nvim/mermaid/<buf>_<row>.mmd`, runs `mmdc` asynchronously, then renders the output PNG at the code block's row
+- Autocmds: `BufReadPost`/`BufWritePost *.md` → render, `BufWipeout *.md` → clear
+- A `vim.schedule` loop at the end of `config` catches already-open markdown buffers (because `ft`-triggered lazy-load fires after `BufReadPost` has already run)
+
 ## mini.lua
 
 Two mini.echasnovski plugins:

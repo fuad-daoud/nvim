@@ -21,6 +21,7 @@ bash pacakges.sh
 - **LSPs (AUR):** `zls`, `tailwindcss-language-server`
 - **Formatters:** `prettier`, `stylua`, `shfmt`, `shellcheck`, `yamllint`, `prettierd`, `actionlint`, `jq`
 - **Go tools:** `goimports`, `golines`, `gomodifytags`, `dlv`, `templ`
+- **Markdown/mermaid:** `imagemagick`, `luarocks` (pacman), `magick` LuaRock (luarocks, Lua 5.1), `mmdc` (npm)
 
 On first launch, lazy.nvim bootstraps itself and installs all plugins automatically.
 

@@ -273,6 +273,31 @@ Hash store location: `vim.fn.stdpath('data') .. '/config-local'`.
 
 ---
 
+## Markdown — `markdown.lua`
+
+**Plugins:** `MeanderingProgrammer/render-markdown.nvim` + `3rd/image.nvim`
+
+Both plugins load on `ft = { 'markdown' }`.
+
+### render-markdown.nvim
+
+Visual in-editor rendering using treesitter + extmarks/virtual lines: styled headers (h1–h6), bold/italic, fenced code blocks, tables, checkboxes, and list bullets. No extra configuration — defaults work with the rose-pine theme.
+
+### image.nvim + Mermaid diagrams
+
+`image.nvim` renders images inline using the **Kitty Graphics Protocol** (supported by Ghostty). The mermaid rendering pipeline:
+
+1. Treesitter AST walk finds all ` ```mermaid ` fenced code blocks in the buffer
+2. Each block is written to `~/.cache/nvim/mermaid/<buf>_<row>.mmd`
+3. `mmdc` (mermaid-cli) converts it to a PNG asynchronously
+4. `image.nvim` renders the PNG at the code block's row with virtual padding
+
+Diagrams re-render on every `BufWritePost`. Images are cleared on `BufWipeout`.
+
+**Dependencies:** `imagemagick` (system, provides `libMagickWand`), `magick` LuaRock (Lua 5.1, installed via `luarocks --lua-version 5.1 install magick --local`), `mmdc` (`npm install -g @mermaid-js/mermaid-cli`).
+
+---
+
 ## Auto-pairs & Surround — `mini.lua`
 
 **Plugins:** `echasnovski/mini.pairs` + `echasnovski/mini.surround`
@@ -328,6 +353,7 @@ These don't have their own file in `lua/plugins/`.
 | CSS / GraphQL / JSON | prettierd → prettier |
 | Svelte | prettierd → prettier |
 | YAML | prettierd |
+| Markdown | prettierd → prettier |
 | Python | isort → black |
 | SQL | sql-formatter |
 | Elixir | prettierd |
