@@ -6,7 +6,12 @@ Each file returns a lazy.nvim plugin spec. All files are auto-imported by `{ imp
 
 Configures `nvim-lspconfig` directly — **no Mason**. Servers must be installed via system packages (see root CLAUDE.md).
 
-Active servers: `lua_ls`, `gopls`, `zls`, `tailwindcss`, `html`, `cssls`, `jsonls`, `yamlls`, `bashls`.
+Active servers: `lua_ls`, `gopls`, `zls`, `tailwindcss`, `html`, `cssls`, `jsonls`, `yamlls`, `bashls`, `kotlin_language_server`. Java uses `nvim-jdtls` (see `java.lua`) rather than this list.
+
+`kotlin_language_server` has a known bug (v1.3.13): it crashes with `-32603` on `documentHighlight` and `documentFormatting` requests when running outside a full Gradle/Maven project (unresolved classpath). Workarounds applied:
+- `on_attach` clears `documentHighlightProvider`, `documentFormattingProvider`, `documentRangeFormattingProvider` so `supports_method` returns false for all callers (including `snacks.words` which independently sends highlight requests)
+- `LspAttach` callback also guards highlight autocmd with `client.name ~= 'kotlin_language_server'` as a belt-and-suspenders check
+- `format_on_save` returns `nil` for kotlin (no save formatting); use `<leader>f` for ktlint instead
 
 Capabilities come from `blink.cmp`. LSP keymaps are set in the `LspAttach` autocmd:
 
@@ -26,6 +31,15 @@ Capabilities come from `blink.cmp`. LSP keymaps are set in the `LspAttach` autoc
 | `<leader>ds` / `<leader>ws` | Document/Workspace symbols |
 
 Diagnostic display: virtual text with `●` prefix, floating windows on `CursorHold` (unfocused), rounded borders.
+
+## java.lua
+
+Java LSP via `mfussenegger/nvim-jdtls`. Lazy-loaded on `ft = java`. A `FileType java` autocmd calls `require('jdtls').start_or_attach` with:
+- `cmd = { 'jdtls', '-data', workspace_dir }` — workspace is `~/.local/share/eclipse/<project-name>` (project name derived from `getcwd()` at attach time, giving per-project isolation)
+- `root_dir` — detected from `.git`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`
+- `capabilities` from `blink.cmp`
+
+jdtls binary installed from AUR (`yay -S jdtls`). Not wired through `vim.lsp.enable` — `nvim-jdtls` manages the lifecycle directly.
 
 ## blink.lua
 

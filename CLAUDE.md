@@ -17,8 +17,8 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
 
 1. Install system packages from `pacakges.sh`:
    - Core LSPs via pacman: `lua-language-server gopls clang yaml-language-server bash-language-server`
-   - AUR LSPs: `zls tailwindcss-language-server`
-   - Formatters: `prettier stylua shfmt shellcheck yamllint prettierd actionlint jq`
+   - AUR LSPs: `zls tailwindcss-language-server jdtls kotlin-language-server`
+   - Formatters: `prettier stylua shfmt shellcheck yamllint prettierd actionlint jq google-java-format ktlint`
    - Go tools: `goimports`, `golines`, `gomodifytags`, `dlv`, `templ` via `go install`
    - Markdown/mermaid rendering: `imagemagick luarocks` via pacman, then `luarocks --lua-version 5.1 install magick --local` and `npm install -g @mermaid-js/mermaid-cli`
 

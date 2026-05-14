@@ -23,6 +23,8 @@ LSP servers are installed manually via system packages — **Mason is not used**
 | `jsonls` | JSON |
 | `yamlls` | YAML |
 | `bashls` | Bash |
+| `kotlin_language_server` | Kotlin (documentHighlight + formatting disabled — see `java.lua` note) |
+| jdtls | Java — managed by `nvim-jdtls` in `java.lua`, not listed here |
 
 ### LSP Keymaps (buffer-local, set on `LspAttach`)
 
@@ -49,6 +51,18 @@ LSP servers are installed manually via system packages — **Mason is not used**
 - Floating window on `CursorHold` (unfocused, cursor-scoped)
 - Signs: `✘` error · `▲` warn · `⚑` hint · `»` info
 - Rounded borders on all floats
+
+---
+
+## Java LSP — `java.lua`
+
+**Plugin:** `mfussenegger/nvim-jdtls`
+
+jdtls requires per-project workspace isolation and is incompatible with the plain `vim.lsp.enable` approach, so it is managed by `nvim-jdtls` instead. Lazy-loaded on `ft = java`. A `FileType java` autocmd calls `require('jdtls').start_or_attach` each time a Java buffer opens, computing a project-specific workspace dir (`~/.local/share/eclipse/<project-name>`) from `getcwd()` at attach time.
+
+Root detection markers: `.git`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`.
+
+**Install:** `yay -S jdtls`
 
 ---
 
@@ -189,7 +203,7 @@ Layout: 90% width/height, prompt at bottom, preview cuts off at 180 cols.
 
 `auto_install = true` — parsers install automatically on first open of a new filetype.
 
-Pre-installed parsers: `bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `vim`, `vimdoc`, `go`, `rust`, `zig`, `dockerfile`.
+Pre-installed parsers: `bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `vim`, `vimdoc`, `go`, `rust`, `zig`, `dockerfile`, `java`, `kotlin`.
 
 Includes a custom **templ** parser (`virschmann/tree-sitter-templ`) for Go templating with the `a-h/templ` tool. Markdown uses additional vim regex highlighting for correct indent behaviour.
 
@@ -358,5 +372,7 @@ These don't have their own file in `lua/plugins/`.
 | SQL | sql-formatter |
 | Elixir | prettierd |
 | Go | LSP (gofumpt via gopls) |
+| Java | google-java-format |
+| Kotlin | ktlint (manual `<leader>f` only — no format-on-save; ktlint takes ~800ms JVM startup) |
 
-Format on save runs with a 500ms timeout. C/C++ files are excluded from auto-format.
+Format on save runs with a 500ms timeout. C/C++ and Kotlin files are excluded from auto-format. ktlint is configured with `exit_codes = { 0, 1 }` because it exits 1 for non-autocorrectable violations (e.g. wildcard imports) even when it successfully formats everything else.

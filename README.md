@@ -18,8 +18,8 @@ bash pacakges.sh
 
 `pacakges.sh` installs:
 - **LSPs (pacman):** `lua-language-server`, `gopls`, `clang`, `yaml-language-server`, `bash-language-server`
-- **LSPs (AUR):** `zls`, `tailwindcss-language-server`
-- **Formatters:** `prettier`, `stylua`, `shfmt`, `shellcheck`, `yamllint`, `prettierd`, `actionlint`, `jq`
+- **LSPs (AUR):** `zls`, `tailwindcss-language-server`, `jdtls`, `kotlin-language-server`
+- **Formatters:** `prettier`, `stylua`, `shfmt`, `shellcheck`, `yamllint`, `prettierd`, `actionlint`, `jq`, `google-java-format`, `ktlint`
 - **Go tools:** `goimports`, `golines`, `gomodifytags`, `dlv`, `templ`
 - **Markdown/mermaid:** `imagemagick`, `luarocks` (pacman), `magick` LuaRock (luarocks, Lua 5.1), `mmdc` (npm)
 
