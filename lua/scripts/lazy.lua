@@ -88,6 +88,7 @@ require('lazy').setup({
         svelte = { 'prettierd', 'prettier' },
         typescript = { 'prettierd', 'prettier', 'sql-formatter' },
         typescriptreact = { 'prettierd', 'prettier' },
+        markdown = { 'prettierd', 'prettier' },
         yaml = { 'prettierd' },
         elixir = { 'prettierd' },
       },

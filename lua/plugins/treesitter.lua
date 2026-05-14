@@ -35,6 +35,20 @@ return {
       ---@diagnostic disable-next-line: missing-fields
       require('nvim-treesitter.configs').setup(opts)
 
+      -- nvim-treesitter is archived and its set-lang-from-info-string! directive assumes
+      -- match[id] is a bare TSNode, but Neovim 0.11+ passes (TSNode|nil)[] — patch it.
+      vim.treesitter.query.add_directive('set-lang-from-info-string!', function(match, _, bufnr, pred, metadata)
+        local nodes = match[pred[2]]
+        local node = type(nodes) == 'table' and nodes[1] or nodes
+        if not node then
+          return
+        end
+        local text = vim.treesitter.get_node_text(node, bufnr)
+        if text then
+          metadata['injection.language'] = text:lower()
+        end
+      end, { force = true })
+
       local parser_config = require('nvim-treesitter.parsers').get_parser_configs()
       parser_config.templ = {
         install_info = {

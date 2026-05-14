@@ -8,6 +8,11 @@ yay -S zls tailwindcss-language-server
 sudo pacman -S prettier stylua shfmt shellcheck yamllint
 yay -S prettierd actionlint jq
 
+# Markdown / image rendering (for mermaid diagrams via image.nvim)
+sudo pacman -S luarocks imagemagick
+luarocks --lua-version 5.1 install magick --local  # LuaJIT-compatible binding
+npm install -g @mermaid-js/mermaid-cli
+
 # Go tools
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/segmentio/golines@latest
