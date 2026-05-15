@@ -17,8 +17,9 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
 
 1. Install system packages from `pacakges.sh`:
    - Core LSPs via pacman: `lua-language-server gopls clang yaml-language-server bash-language-server`
-   - AUR LSPs: `zls tailwindcss-language-server jdtls kotlin-language-server`
+   - AUR LSPs: `zls tailwindcss-language-server jdtls kotlin-language-server java-debug`
    - Formatters: `prettier stylua shfmt shellcheck yamllint prettierd actionlint jq google-java-format ktlint`
+   - Spring Boot LS (manual): build `spring-boot-language-server-*-exec.jar` from https://github.com/spring-projects/sts4 and copy to `~/.local/share/spring-boot-ls/spring-boot-language-server.jar`. Copy the 5 Eclipse plugin JARs from the matching STS4 VSIX `extension/jars/` into `~/.local/share/spring-boot-ls/jars/`: `jdt-ls-commons.jar`, `jdt-ls-extension.jar`, `io.projectreactor.reactor-core.jar`, `org.reactivestreams.reactive-streams.jar`, `sts-gradle-tooling.jar`. Do NOT extract these from the fat JAR's `BOOT-INF/lib/` — those JARs have wrong OSGi bundle symbolic names and silently break the jdtls↔spring-boot-ls classpath bridge.
    - Go tools: `goimports`, `golines`, `gomodifytags`, `dlv`, `templ` via `go install`
    - Markdown/mermaid rendering: `imagemagick luarocks` via pacman, then `luarocks --lua-version 5.1 install magick --local` and `npm install -g @mermaid-js/mermaid-cli`
 
