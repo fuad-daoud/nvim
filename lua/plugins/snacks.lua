@@ -72,7 +72,13 @@ return {
     },
     lazygit = {},
     words = {},
-    scroll = { enabled = false },
+    scroll = {
+      enabled = true,
+      animate = {
+        duration = { step = 15, total = 120 },
+        easing = 'linear',
+      },
+    },
   },
   keys = {
     {

@@ -1,7 +1,26 @@
+---@diagnostic disable: undefined-global
+local function lsp_clients()
+  local clients = vim.lsp.get_clients { bufnr = 0 }
+  if #clients == 0 then
+    return ''
+  end
+  local names = vim.tbl_map(function(c)
+    return c.name
+  end, clients)
+  return ' ' .. table.concat(names, ' ')
+end
+
+local function noice_mode()
+  return package.loaded['noice'] and require('noice').api.statusline.mode.get() or ''
+end
+
+local function noice_mode_cond()
+  return package.loaded['noice'] and require('noice').api.statusline.mode.has() or false
+end
+
 return {
   'nvim-lualine/lualine.nvim',
   dependencies = { 'nvim-tree/nvim-web-devicons' },
-
   opts = {
     options = {
       theme = 'rose-pine',
@@ -33,15 +52,23 @@ return {
           'filename',
           path = 1,
           symbols = {
-            modified = '[+]',
-            readonly = '[RO]',
+            modified = ' ●',
+            readonly = ' ',
             unnamed = '[No Name]',
             newfile = '[New]',
           },
         },
+        {
+          noice_mode,
+          cond = noice_mode_cond,
+          color = { fg = '#eb6f92', gui = 'bold' }, -- rose-pine rose
+        },
       },
-      lualine_x = { 'encoding', 'fileformat', 'filetype' },
-      lualine_y = { 'progress' },
+      lualine_x = {
+        { lsp_clients, color = { fg = '#9ccfd8' } }, -- rose-pine foam
+        'filetype',
+      },
+      lualine_y = { 'searchcount', 'progress' },
       lualine_z = { 'location' },
     },
     inactive_sections = {

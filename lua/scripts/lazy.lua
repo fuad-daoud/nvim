@@ -105,7 +105,16 @@ require('lazy').setup({
   {
     'rcarriga/nvim-notify',
     config = function()
-      vim.notify = require 'notify'
+      local notify = require 'notify'
+      notify.setup {
+        render = 'compact',
+        stages = 'fade',
+        timeout = 3000,
+        max_width = function()
+          return math.floor(vim.o.columns * 0.4)
+        end,
+      }
+      vim.notify = notify
     end,
   },
   {
