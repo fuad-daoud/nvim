@@ -70,18 +70,10 @@ require('lazy').setup({
         local disable_filetypes = { c = true, cpp = true }
         if disable_filetypes[ft] then
           return nil
-        elseif ft == 'kotlin' then
-          -- ktlint has ~800ms JVM startup and kls crashes on format; skip on-save, use <leader>f
-          return nil
         else
           return { timeout_ms = 500, lsp_format = 'fallback' }
         end
       end,
-      formatters = {
-        -- ktlint exits 1 when non-autocorrectable violations remain (e.g. wildcard imports),
-        -- but still writes the corrected output to stdout — accept both exit codes.
-        ktlint = { exit_codes = { 0, 1 } },
-      },
       formatters_by_ft = {
         lua = { 'stylua' },
         css = { 'prettierd', 'prettier' },
@@ -97,8 +89,6 @@ require('lazy').setup({
         markdown = { 'prettierd', 'prettier' },
         yaml = { 'prettierd' },
         elixir = { 'prettierd' },
-        java = { 'google-java-format' },
-        kotlin = { 'ktlint' },
       },
     },
   },

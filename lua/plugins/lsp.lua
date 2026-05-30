@@ -40,11 +40,7 @@ return {
           local client = vim.lsp.get_client_by_id(event.data.client_id)
 
           ---@diagnostic disable-next-line: param-type-mismatch
-          if
-            client
-            and client.name ~= 'kotlin_language_server'
-            and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, { bufnr = event.buf })
-          then
+          if client and client.supports_method(vim.lsp.protocol.Methods.textDocument_documentHighlight, { bufnr = event.buf }) then
             local highlight_augroup = vim.api.nvim_create_augroup('lsp-highlight', { clear = false })
             vim.api.nvim_create_autocmd({ 'CursorHold', 'CursorHoldI' }, {
               buffer = event.buf,
@@ -93,17 +89,7 @@ return {
         },
       })
 
-      -- kotlin_language_server crashes on documentHighlight and format requests without a full
-      -- Gradle/Maven project on disk; disable both capabilities to prevent -32603 errors.
-      vim.lsp.config('kotlin_language_server', {
-        on_attach = function(client)
-          client.server_capabilities.documentHighlightProvider = false
-          client.server_capabilities.documentFormattingProvider = false
-          client.server_capabilities.documentRangeFormattingProvider = false
-        end,
-      })
-
-      vim.lsp.enable { 'lua_ls', 'gopls', 'zls', 'tailwindcss', 'html', 'cssls', 'jsonls', 'yamlls', 'bashls', 'kotlin_language_server' }
+      vim.lsp.enable { 'lua_ls', 'gopls', 'zls', 'tailwindcss', 'html', 'cssls', 'jsonls', 'yamlls', 'bashls' }
 
       vim.diagnostic.config {
         virtual_text = {

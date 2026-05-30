@@ -6,12 +6,7 @@ Each file returns a lazy.nvim plugin spec. All files are auto-imported by `{ imp
 
 Configures `nvim-lspconfig` directly — **no Mason**. Servers must be installed via system packages (see root CLAUDE.md).
 
-Active servers: `lua_ls`, `gopls`, `zls`, `tailwindcss`, `html`, `cssls`, `jsonls`, `yamlls`, `bashls`, `kotlin_language_server`. Java uses `nvim-jdtls` (see `java.lua`) rather than this list.
-
-`kotlin_language_server` has a known bug (v1.3.13): it crashes with `-32603` on `documentHighlight` and `documentFormatting` requests when running outside a full Gradle/Maven project (unresolved classpath). Workarounds applied:
-- `on_attach` clears `documentHighlightProvider`, `documentFormattingProvider`, `documentRangeFormattingProvider` so `supports_method` returns false for all callers (including `snacks.words` which independently sends highlight requests)
-- `LspAttach` callback also guards highlight autocmd with `client.name ~= 'kotlin_language_server'` as a belt-and-suspenders check
-- `format_on_save` returns `nil` for kotlin (no save formatting); use `<leader>f` for ktlint instead
+Active servers: `lua_ls`, `gopls`, `zls`, `tailwindcss`, `html`, `cssls`, `jsonls`, `yamlls`, `bashls`.
 
 Capabilities come from `blink.cmp`. LSP keymaps are set in the `LspAttach` autocmd:
 
@@ -31,52 +26,6 @@ Capabilities come from `blink.cmp`. LSP keymaps are set in the `LspAttach` autoc
 | `<leader>ds` / `<leader>ws` | Document/Workspace symbols |
 
 Diagnostic display: virtual text with `●` prefix, floating windows on `CursorHold` (unfocused), rounded borders.
-
-## java.lua
-
-Two plugins: `mfussenegger/nvim-jdtls` (Java LSP) + `JavaHello/spring-boot.nvim` (Spring Boot features). Both lazy-loaded on `ft = java`.
-
-**spring-boot.nvim** (`JavaHello/spring-boot.nvim`):
-- Provides the message bridge between spring-boot-ls and jdtls (spring-boot-ls cannot talk to jdtls without this — it crashes on init with a NullPointerException on `getExecuteCommandProvider()`)
-- `init` sets `vim.g.spring_boot.jdt_extensions_path = ~/.local/share/spring-boot-ls/jars` — the 5 Eclipse plugin JARs that jdtls must load as bundles
-- `opts.ls_path` points to the standalone spring-boot-language-server exec JAR at `~/.local/share/spring-boot-ls/spring-boot-language-server.jar`
-- **Do NOT call `require('spring_boot').java_extensions()` without a path** — it falls back to Mason/VSCode lookup and returns empty. Instead, glob `~/.local/share/spring-boot-ls/jars/*.jar` directly (see `java.lua`). The `is_bundle_jar` name filter also rejects versioned BOOT-INF names like `reactor-core-3.x.jar` vs expected `io.projectreactor.reactor-core.jar`.
-- `require('spring_boot').init_lsp_commands()` called in `on_attach` registers Neovim-side handlers for Spring Boot LSP commands
-
-**nvim-jdtls**: A `FileType java` autocmd calls `require('jdtls').start_or_attach` with:
-- `cmd = { 'jdtls', '-data', workspace_dir }` — workspace is `~/.local/share/eclipse/<project-name>`
-- `root_dir` — detected from `.git`, `pom.xml`, `build.gradle`, `build.gradle.kts`, `settings.gradle`, `settings.gradle.kts`
-- `capabilities` from `blink.cmp`
-- `init_options.bundles` — java-debug plugin JAR (`/usr/share/java-debug/com.microsoft.java.debug.plugin.jar`, from AUR `java-debug`) + spring-boot Eclipse plugin JARs
-- `on_attach` — calls `setup_dap` + `setup_dap_main_class_configs` for Java debugging
-
-jdtls binary installed from AUR (`yay -S jdtls`). Not wired through `vim.lsp.enable` — `nvim-jdtls` manages the lifecycle directly.
-
-**5 Eclipse plugin JARs required in `~/.local/share/spring-boot-ls/jars/`** — copy from the matching STS4 VSIX `extension/jars/`:
-`jdt-ls-commons.jar`, `jdt-ls-extension.jar`, `io.projectreactor.reactor-core.jar`, `org.reactivestreams.reactive-streams.jar`, `sts-gradle-tooling.jar`
-
-**Critical**: all 5 must come from the VSIX `extension/jars/`, NOT from `BOOT-INF/lib/`. The `BOOT-INF/lib` versions have plain Maven bundle names (e.g. `reactive-streams` vs required `org.reactivestreams.reactive-streams`) which fail OSGi resolution and silently kill the classpath bridge. The VSIX version must match the jdt-ls-commons build timestamp (check `Bundle-Version` in its `META-INF/MANIFEST.MF`).
-
-**OSGi bundle state cache**: stored at `~/.eclipse/<hash>/configuration/org.eclipse.osgi/` (hash from jdtls install path). If extension bundles fail to load after changing JARs, stale state causes higher-version failed bundles to win resolution. Clear with: `rm -rf ~/.eclipse/*/configuration/org.eclipse.osgi`. Check `~/.local/share/eclipse/<project>/.metadata/.log` for `Bundle startup failed` entries.
-
-**Bean/endpoint pickers use ripgrep** (not spring-boot-ls `workspace/symbol`). The spring-boot-ls `@+`/`@/` queries stream results as LSP `$/progress` partial-result notifications and require the jdtls classpath bridge to be fully initialised — unreliable in practice. The rg approach is instant and has no server dependency.
-
-**`<leader>sjh` hover** queries spring-boot-ls directly (bypasses jdtls Javadoc). Works statically once the jdtls↔spring-boot-ls classpath bridge is up — shows bean candidates on `@Autowired` fields without a running app. With actuator running it also shows live-wired bean info.
-
-Keymaps (buffer-local, Java only):
-
-| Key | Action |
-|-----|--------|
-| `<leader>sjb` | Spring beans — rg scan for `@(Component\|Service\|Repository\|Controller\|RestController\|Configuration\|Bean)` |
-| `<leader>sje` | Spring endpoints — rg scan for `@(Get\|Post\|Put\|Delete\|Patch\|Request)Mapping` |
-| `<leader>sjh` | Spring Boot hover — bean candidates (static) + live actuator info (spring-boot client only) |
-| `<leader>sjo` | Organize imports |
-| `<leader>sjv` | Extract variable |
-| `<leader>sjm` | Extract method |
-| `<leader>sjc` | Extract constant |
-| `<leader>sjd` | Pick and debug test (DAP) |
-
-DAP keymaps (`<F5>`, `<F1>`–`<F3>`, `<leader>b`, etc.) from `debug.lua` work for Java automatically once `setup_dap` runs.
 
 ## blink.lua
 

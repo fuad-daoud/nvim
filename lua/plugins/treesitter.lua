@@ -19,8 +19,6 @@ return {
         'rust',
         'zig',
         'dockerfile',
-        'java',
-        'kotlin',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,
