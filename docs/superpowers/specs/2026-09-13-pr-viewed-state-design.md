@@ -102,3 +102,19 @@ mention. Update root `CLAUDE.md` "Shared Utilities" to list `lua/pr_review.lua`.
   reverts. Toggle on a directory row does nothing. `<leader>gv` on a non-PR
   branch: no counter, `-` notifies.
 - `stylua --check .` passes.
+
+## Addendum (2026-09-13): directory toggle
+
+`-` on a directory row (a `DirData`, has `.name`, no `.basename`) toggles every
+file whose path starts with `dir.path .. '/'`:
+
+- If any such file is unviewed → mark all of them; if all are viewed → unmark all.
+- All paths go in **one** GraphQL request using aliases:
+  `mutation($id:ID!){ f0: markFileAsViewed(input:{pullRequestId:$id,path:"…"}){clientMutationId} f1: … }`
+  (path literals JSON-encoded with `vim.json.encode`).
+- Optimistic: flip `state.viewed` for all affected paths and redraw; on failure
+  revert all and notify. Cursor does not move.
+- Implementation: `M.toggle_viewed()` gains a `dir` branch that computes the
+  path list from the panel's `file` components; the mutation sender is shared
+  (`set_viewed(paths, viewed)`), so the single-file case is the same code with
+  a one-element list.
