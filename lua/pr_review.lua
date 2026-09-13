@@ -36,7 +36,7 @@ local function mark_row(buf, row)
   vim.api.nvim_buf_set_extmark(buf, ns, row, 0, { end_col = #line, hl_group = 'Comment', priority = 200 })
 end
 
--- Paint ✓ + dimmed rows for viewed files (and directories whose files are all viewed), plus a counter on the
+-- Paint ✓ + dimmed rows for viewed files (and collapsed directories whose files are all viewed), plus a counter on the
 -- "Changes" title. Runs after every panel redraw.
 function M.decorate(panel)
   local buf = panel.bufid
@@ -49,8 +49,8 @@ function M.decorate(panel)
   end
   local total, done, dirs = 0, 0, {}
   panel.components.comp:deep_some(function(comp)
-    if comp.name == 'directory' then
-      table.insert(dirs, comp)
+    if comp.name == 'directory' and comp.context.collapsed then
+      table.insert(dirs, comp) -- like diffview's folder status letter, only shown while collapsed
     elseif comp.name == 'file' then
       total = total + 1
       if state.viewed[comp.context.path] then
