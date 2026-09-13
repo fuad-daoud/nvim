@@ -1,29 +1,4 @@
--- Side-by-side diff review of a PR. Workflow: `:PrReview 464` → <Tab>/<S-Tab> files, ]c/[c hunks, `-` toggle viewed.
-
--- Base branch of the PR on the current branch (`origin/<base>`), or `origin/master` if gh can't tell.
-local function pr_base()
-  local res = vim.system({ 'gh', 'pr', 'view', '--json', 'baseRefName', '-q', '.baseRefName' }, { text = true }):wait()
-  local base = res.code == 0 and vim.trim(res.stdout or '') or ''
-  if base == '' then
-    base = 'master'
-  end
-  return 'origin/' .. base
-end
-
-local function pr_review(opts)
-  local number = opts.args
-  if number ~= '' then
-    local res = vim.system({ 'gh', 'pr', 'checkout', number }, { text = true }):wait()
-    if res.code ~= 0 then
-      vim.notify('gh pr checkout ' .. number .. ' failed:\n' .. (res.stderr or ''), vim.log.levels.ERROR)
-      return
-    end
-  end
-  local base = pr_base()
-  vim.system({ 'git', 'fetch', 'origin', (base:gsub('^origin/', '')) }, { text = true }):wait()
-  vim.cmd('DiffviewOpen ' .. base .. '...HEAD')
-end
-
+-- Side-by-side PR review. `:PrReview 464` → <Tab>/<S-Tab> files, ]c/[c hunks, `-` toggles GitHub "viewed". Logic lives in lua/pr_review.lua.
 return {
   {
     'sindrets/diffview.nvim',
@@ -35,10 +10,27 @@ return {
     opts = {
       enhanced_diff_hl = true,
       view = { merge_tool = { layout = 'diff3_mixed' } },
+      keymaps = {
+        file_panel = {
+          {
+            'n',
+            '-',
+            function()
+              require('pr_review').toggle_viewed()
+            end,
+            { desc = 'Toggle viewed on GitHub' },
+          },
+        },
+      },
+      hooks = {
+        view_closed = function()
+          require('pr_review').reset()
+        end,
+      },
     },
     config = function(_, opts)
       require('diffview').setup(opts)
-      vim.api.nvim_create_user_command('PrReview', pr_review, { nargs = '?', desc = 'Checkout PR [number] and open diffview against its base' })
+      require('pr_review').setup()
     end,
   },
 }
