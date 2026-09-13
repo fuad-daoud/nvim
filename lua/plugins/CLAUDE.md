@@ -119,6 +119,19 @@ Sign column git indicators. Keymaps (buffer-local):
 | `<leader>gdc` | Diff against last commit |
 | `<leader>tD` | Preview hunk inline |
 
+## diffview.lua
+
+PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands.
+
+`:PrReview [number]` — with a number, runs `gh pr checkout <number>` first (aborts with a notification on failure). Then detects the PR base branch via `gh pr view --json baseRefName` (falls back to `origin/master`), fetches it, and runs `:DiffviewOpen origin/<base>...HEAD`.
+
+| Key | Action |
+|-----|--------|
+| `<leader>gv` | `:PrReview` — diffview of current branch vs its PR base |
+| `<leader>gV` | `:DiffviewClose` |
+
+Inside diffview (stock bindings): `<Tab>`/`<S-Tab>` next/prev file · `]c`/`[c` hunks · `-` toggle viewed · `g?` help. The right-hand side is a real buffer, so LSP (`gd`, hover) works while reading.
+
 ## config-local.lua
 
 Loads `.nvim.lua` or `.nvimrc` from the project root when present. Used for per-project settings like Go build tags. Hash-verified on first load.
