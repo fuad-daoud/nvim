@@ -114,7 +114,11 @@ local function files_under(panel, dir)
   return paths
 end
 
--- Flip `paths` to `viewed` on GitHub in one aliased mutation; optimistic, reverted on failure.
+-- GitHub rejects a request with too many aliased mutations ("Resource limits for this query exceeded"; measured
+-- limit is somewhere in 50-59), so directory toggles are sent in batches of this size.
+local BATCH = 25
+
+-- Flip `paths` to `viewed` on GitHub, one aliased mutation per batch; optimistic, each failed batch is reverted.
 local function set_viewed(panel, paths, viewed)
   local pr_id = state.pr_id
   for _, p in ipairs(paths) do
@@ -122,23 +126,26 @@ local function set_viewed(panel, paths, viewed)
   end
   panel:redraw()
   local mutation = viewed and 'markFileAsViewed' or 'unmarkFileAsViewed'
-  local fields = {}
-  for i, p in ipairs(paths) do
-    fields[i] = ('f%d: %s(input:{pullRequestId:$id,path:%s}){ clientMutationId }'):format(i, mutation, vim.json.encode(p))
-  end
-  local query = 'mutation($id:ID!){ ' .. table.concat(fields, ' ') .. ' }'
-  graphql(query, { id = pr_id }, function(data, err)
-    if state.pr_id ~= pr_id then
-      return
+  for i = 1, #paths, BATCH do
+    local batch = vim.list_slice(paths, i, i + BATCH - 1)
+    local fields = {}
+    for j, p in ipairs(batch) do
+      fields[j] = ('f%d: %s(input:{pullRequestId:$id,path:%s}){ clientMutationId }'):format(j, mutation, vim.json.encode(p))
     end
-    if not data or data.errors then
-      for _, p in ipairs(paths) do
-        state.viewed[p] = (not viewed) or nil
+    graphql('mutation($id:ID!){ ' .. table.concat(fields, ' ') .. ' }', { id = pr_id }, function(data, err)
+      if state.pr_id ~= pr_id then
+        return
       end
-      redraw_panel()
-      vim.notify('pr_review: ' .. mutation .. ' failed\n' .. (err ~= '' and err or vim.inspect(data and data.errors)), vim.log.levels.ERROR)
-    end
-  end)
+      if not data or data.errors then
+        for _, p in ipairs(batch) do
+          state.viewed[p] = (not viewed) or nil
+        end
+        redraw_panel()
+        local reason = err ~= '' and err or (data.errors[1] and data.errors[1].message) or vim.inspect(data.errors)
+        vim.notify(('pr_review: %s failed for %d file(s)\n%s'):format(mutation, #batch, reason), vim.log.levels.ERROR)
+      end
+    end)
+  end
 end
 
 -- `-` in the file panel. File: flip it and advance. Directory: mark all files under it, or unmark all if every one is viewed.

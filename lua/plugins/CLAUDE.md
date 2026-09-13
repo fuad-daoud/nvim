@@ -132,7 +132,7 @@ PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands. Fi
 | `<leader>gv` | `:PrReview` — diffview of current branch vs its PR base |
 | `<leader>gc` | `:PrReview --commits` — commit-by-commit history of the PR |
 | `<leader>gV` | `:DiffviewClose` |
-| `-` (file panel) | On a file: toggle its **Viewed** state on GitHub (`markFileAsViewed` / `unmarkFileAsViewed`) and move to the next entry. On a directory: mark every file under it, or unmark all if every one is already viewed — one aliased GraphQL mutation. Optimistic, reverted on error |
+| `-` (file panel) | On a file: toggle its **Viewed** state on GitHub (`markFileAsViewed` / `unmarkFileAsViewed`) and move to the next entry. On a directory: mark every file under it, or unmark all if every one is already viewed — aliased GraphQL mutations in batches of 25 (GitHub rejects ~55+ per request with "Resource limits for this query exceeded"). Optimistic, each failed batch reverted |
 
 Viewed files show `✓` in place of the status letter and are dimmed; the "Changes" title gets a `✓ n/total` counter. Decorations are extmarks painted by a wrapper around `FilePanel:redraw`. On a non-PR branch `-` just notifies.
 
