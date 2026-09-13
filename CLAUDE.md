@@ -20,7 +20,7 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
    - AUR LSPs: `zls tailwindcss-language-server`
    - Formatters: `prettier stylua shfmt shellcheck yamllint prettierd actionlint jq`
    - Go tools: `goimports`, `golines`, `gomodifytags`, `dlv`, `templ` via `go install`
-   - Markdown/mermaid rendering: `imagemagick luarocks` via pacman, then `luarocks --lua-version 5.1 install magick --local` and `npm install -g @mermaid-js/mermaid-cli`
+   - Markdown/mermaid rendering: `imagemagick luarocks lua51` via pacman (`lua51` is required for `--lua-version 5.1`), then `luarocks --lua-version 5.1 install magick --local` and `npm install -g --allow-scripts=puppeteer @mermaid-js/mermaid-cli` (the `--allow-scripts` flag is needed or puppeteer skips its Chromium download and `mmdc` fails at runtime)
 
 2. Base system prereqs (from `init.lua` comment): `pacman -S git neovim npm unzip go zig`
 
