@@ -232,6 +232,24 @@ function M.open(args)
   end
 end
 
+-- Debug: print viewed state + extmarks for the entry under the cursor (and every file under it, for a directory).
+function M.inspect()
+  local panel = current_panel()
+  local item = panel and panel:get_item_at_cursor()
+  if not item then
+    return print 'pr_review: nothing under cursor'
+  end
+  local prefix = item.basename and item.path or item.path .. '/'
+  print(('pr_id=%s cwd=%s item=%s'):format(tostring(state.pr_id), vim.fn.getcwd(), item.path))
+  panel.components.comp:deep_some(function(comp)
+    if comp.name == 'file' and vim.startswith(comp.context.path, prefix) then
+      local marks = vim.api.nvim_buf_get_extmarks(panel.bufid, ns, { comp.lstart, 0 }, { comp.lstart, -1 }, {})
+      print(('  %-60s viewed=%-5s lstart=%d extmarks=%d'):format(comp.context.path, tostring(state.viewed[comp.context.path] ~= nil), comp.lstart, #marks))
+    end
+    return false
+  end)
+end
+
 function M.setup()
   local FilePanel = require('diffview.scene.views.diff.file_panel').FilePanel
   local redraw = FilePanel.redraw
