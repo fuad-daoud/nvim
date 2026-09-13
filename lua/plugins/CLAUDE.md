@@ -134,7 +134,7 @@ PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands. Fi
 | `<leader>gV` | `:DiffviewClose` |
 | `-` (file panel) | On a file: toggle its **Viewed** state on GitHub (`markFileAsViewed` / `unmarkFileAsViewed`) and move to the next entry. On a directory: mark every file under it, or unmark all if every one is already viewed — aliased GraphQL mutations in batches of 25 (GitHub rejects ~55+ per request with "Resource limits for this query exceeded"). Optimistic, each failed batch reverted |
 
-Viewed files show `✓` in place of the status letter and are dimmed; the "Changes" title gets a `✓ n/total` counter. Decorations are extmarks painted by a wrapper around `FilePanel:redraw`. On a non-PR branch `-` just notifies.
+Viewed files — and directories whose files are all viewed — show `✓` in place of the status letter and are dimmed; the "Changes" title gets a `✓ n/total` counter. Decorations are extmarks painted by a wrapper around `FilePanel:redraw`. On a non-PR branch `-` just notifies.
 
 Inside diffview (stock bindings): `<Tab>`/`<S-Tab>` next/prev file · `]c`/`[c` hunks · `g?` help. The right-hand side is a real buffer, so LSP (`gd`, hover) works while reading.
 

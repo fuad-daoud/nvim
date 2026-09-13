@@ -30,7 +30,14 @@ function M.reset()
   state = { pr_id = nil, viewed = {} }
 end
 
--- Paint ✓ + dimmed rows for viewed files and a counter on the "Changes" title. Runs after every panel redraw.
+local function mark_row(buf, row)
+  vim.api.nvim_buf_set_extmark(buf, ns, row, 0, { virt_text = { { '✓', 'DiffviewFilePanelInsertions' } }, virt_text_pos = 'overlay' })
+  local line = vim.api.nvim_buf_get_lines(buf, row, row + 1, false)[1] or ''
+  vim.api.nvim_buf_set_extmark(buf, ns, row, 0, { end_col = #line, hl_group = 'Comment', priority = 200 })
+end
+
+-- Paint ✓ + dimmed rows for viewed files (and directories whose files are all viewed), plus a counter on the
+-- "Changes" title. Runs after every panel redraw.
 function M.decorate(panel)
   local buf = panel.bufid
   if not buf or not vim.api.nvim_buf_is_valid(buf) then
@@ -40,20 +47,32 @@ function M.decorate(panel)
   if not state.pr_id or not panel.components then
     return
   end
-  local total, done = 0, 0
+  local total, done, dirs = 0, 0, {}
   panel.components.comp:deep_some(function(comp)
-    if comp.name ~= 'file' then
-      return false
-    end
-    total = total + 1
-    if state.viewed[comp.context.path] then
-      done = done + 1
-      vim.api.nvim_buf_set_extmark(buf, ns, comp.lstart, 0, { virt_text = { { '✓', 'DiffviewFilePanelInsertions' } }, virt_text_pos = 'overlay' })
-      local line = vim.api.nvim_buf_get_lines(buf, comp.lstart, comp.lstart + 1, false)[1] or ''
-      vim.api.nvim_buf_set_extmark(buf, ns, comp.lstart, 0, { end_col = #line, hl_group = 'Comment', priority = 200 })
+    if comp.name == 'directory' then
+      table.insert(dirs, comp)
+    elseif comp.name == 'file' then
+      total = total + 1
+      if state.viewed[comp.context.path] then
+        done = done + 1
+        mark_row(buf, comp.lstart)
+      end
     end
     return false
   end)
+  for _, dir in ipairs(dirs) do
+    local prefix, n, all = dir.context.path .. '/', 0, true
+    panel.components.comp:deep_some(function(comp)
+      if comp.name == 'file' and vim.startswith(comp.context.path, prefix) then
+        n = n + 1
+        all = all and state.viewed[comp.context.path] ~= nil
+      end
+      return not all
+    end)
+    if n > 0 and all then
+      mark_row(buf, dir.components[1].lstart)
+    end
+  end
   local title = panel.components.working.title.comp
   if title and title.lstart then
     local counter = { { ' ✓ ' .. done .. '/' .. total, 'DiffviewFilePanelCounter' } }
