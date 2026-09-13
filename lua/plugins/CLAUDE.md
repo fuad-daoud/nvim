@@ -121,7 +121,7 @@ Sign column git indicators. Keymaps (buffer-local):
 
 ## diffview.lua
 
-PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands. All logic lives in `lua/pr_review.lua`; the spec only wires keymaps, the `-` file-panel override, and the `view_closed` hook.
+PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands. File panel is 45 columns wide (`<leader>b` hides it; `<C-Left>`/`<C-Right>` resize). All logic lives in `lua/pr_review.lua`; the spec only wires keymaps, the `-` file-panel override, and the `view_closed` hook.
 
 `:PrReview [number]` — with a number, runs `gh pr checkout <number>` first (aborts with a notification on failure). Then `gh pr view --json id,baseRefName` gives the PR node id and base (falls back to `origin/master` with no PR), fetches the base, runs `:DiffviewOpen origin/<base>...HEAD`, and asynchronously loads GitHub's per-file `viewerViewedState` via `gh api graphql`.
 

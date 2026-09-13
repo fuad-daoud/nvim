@@ -10,6 +10,7 @@ return {
     opts = {
       enhanced_diff_hl = true,
       view = { merge_tool = { layout = 'diff3_mixed' } },
+      file_panel = { win_config = { width = 45 } },
       keymaps = {
         file_panel = {
           {

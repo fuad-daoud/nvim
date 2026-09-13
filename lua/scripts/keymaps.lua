@@ -9,6 +9,11 @@ vim.keymap.set('n', '<leader>u', vim.cmd.UndotreeToggle)
 vim.keymap.set('n', '<C-h>', '<C-w><C-h>', { desc = 'Move focus to the left window' })
 vim.keymap.set('n', '<C-l>', '<C-w><C-l>', { desc = 'Move focus to the right window' })
 
+vim.keymap.set('n', '<C-Left>', '<cmd>vertical resize -5<CR>', { desc = 'Shrink window width' })
+vim.keymap.set('n', '<C-Right>', '<cmd>vertical resize +5<CR>', { desc = 'Grow window width' })
+vim.keymap.set('n', '<C-Down>', '<cmd>resize -3<CR>', { desc = 'Shrink window height' })
+vim.keymap.set('n', '<C-Up>', '<cmd>resize +3<CR>', { desc = 'Grow window height' })
+
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
 
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })

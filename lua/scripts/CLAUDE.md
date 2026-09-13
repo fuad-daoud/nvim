@@ -27,6 +27,8 @@ Global keymaps (buffer-local LSP keymaps are in `lua/plugins/lsp.lua`).
 | `<leader>pv` | Open netrw (`:Ex`) |
 | `<leader>u` | Toggle undotree |
 | `<C-h>` / `<C-l>` | Move focus left/right window |
+| `<C-Left>` / `<C-Right>` | Shrink / grow window width by 5 |
+| `<C-Down>` / `<C-Up>` | Shrink / grow window height by 3 |
 | `<C-j>` / `<C-k>` | Move current line down/up (normal mode) |
 | `<Esc>` | Clear search highlight |
 | `<leader>q` | Populate loclist with diagnostics |
