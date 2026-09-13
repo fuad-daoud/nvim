@@ -121,16 +121,19 @@ Sign column git indicators. Keymaps (buffer-local):
 
 ## diffview.lua
 
-PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands.
+PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands. All logic lives in `lua/pr_review.lua`; the spec only wires keymaps, the `-` file-panel override, and the `view_closed` hook.
 
-`:PrReview [number]` — with a number, runs `gh pr checkout <number>` first (aborts with a notification on failure). Then detects the PR base branch via `gh pr view --json baseRefName` (falls back to `origin/master`), fetches it, and runs `:DiffviewOpen origin/<base>...HEAD`.
+`:PrReview [number]` — with a number, runs `gh pr checkout <number>` first (aborts with a notification on failure). Then `gh pr view --json id,baseRefName` gives the PR node id and base (falls back to `origin/master` with no PR), fetches the base, runs `:DiffviewOpen origin/<base>...HEAD`, and asynchronously loads GitHub's per-file `viewerViewedState` via `gh api graphql`.
 
 | Key | Action |
 |-----|--------|
 | `<leader>gv` | `:PrReview` — diffview of current branch vs its PR base |
 | `<leader>gV` | `:DiffviewClose` |
+| `-` (file panel) | Toggle the file's **Viewed** state on GitHub (`markFileAsViewed` / `unmarkFileAsViewed`), optimistic with revert on error, then moves to the next entry |
 
-Inside diffview (stock bindings): `<Tab>`/`<S-Tab>` next/prev file · `]c`/`[c` hunks · `-` toggle viewed · `g?` help. The right-hand side is a real buffer, so LSP (`gd`, hover) works while reading.
+Viewed files show `✓` in place of the status letter and are dimmed; the "Changes" title gets a `✓ n/total` counter. Decorations are extmarks painted by a wrapper around `FilePanel:redraw`. On a non-PR branch `-` just notifies.
+
+Inside diffview (stock bindings): `<Tab>`/`<S-Tab>` next/prev file · `]c`/`[c` hunks · `g?` help. The right-hand side is a real buffer, so LSP (`gd`, hover) works while reading.
 
 ## config-local.lua
 
