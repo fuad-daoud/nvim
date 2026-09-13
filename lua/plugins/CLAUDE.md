@@ -125,9 +125,12 @@ PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands. Fi
 
 `:PrReview [number]` — with a number, runs `gh pr checkout <number>` first (aborts with a notification on failure). Then `gh pr view --json id,baseRefName` gives the PR node id and base (falls back to `origin/master` with no PR), fetches the base, runs `:DiffviewOpen origin/<base>...HEAD`, and asynchronously loads GitHub's per-file `viewerViewedState` via `gh api graphql`.
 
+`:PrReview [number] --commits` — same checkout/base detection, then `:DiffviewFileHistory --range=origin/<base>...HEAD --reverse`: the PR's commits oldest-first, each expandable into its files. No viewed marks here (GitHub has no per-commit viewed state).
+
 | Key | Action |
 |-----|--------|
 | `<leader>gv` | `:PrReview` — diffview of current branch vs its PR base |
+| `<leader>gc` | `:PrReview --commits` — commit-by-commit history of the PR |
 | `<leader>gV` | `:DiffviewClose` |
 | `-` (file panel) | On a file: toggle its **Viewed** state on GitHub (`markFileAsViewed` / `unmarkFileAsViewed`) and move to the next entry. On a directory: mark every file under it, or unmark all if every one is already viewed — one aliased GraphQL mutation. Optimistic, reverted on error |
 

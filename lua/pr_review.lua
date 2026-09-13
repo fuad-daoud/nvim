@@ -167,9 +167,18 @@ function M.toggle_viewed()
   end
 end
 
--- `:PrReview [number]`: checkout, detect base, fetch, open diffview, then load viewed marks.
-function M.open(number)
-  if number and number ~= '' then
+-- `:PrReview [number] [--commits]`: checkout, detect base, fetch, then open diffview against the base.
+-- Default view is the whole PR with viewed marks; `--commits` opens the commit-by-commit history instead.
+function M.open(args)
+  local number, commits
+  for _, a in ipairs(vim.split(args or '', '%s+', { trimempty = true })) do
+    if a == '--commits' then
+      commits = true
+    else
+      number = a
+    end
+  end
+  if number then
     local res = gh({ 'pr', 'checkout', number }):wait()
     if res.code ~= 0 then
       vim.notify('gh pr checkout ' .. number .. ' failed:\n' .. (res.stderr or ''), vim.log.levels.ERROR)
@@ -187,6 +196,10 @@ function M.open(number)
     end
   end
   vim.system({ 'git', 'fetch', 'origin', base }, { text = true }):wait()
+  if commits then
+    vim.cmd('DiffviewFileHistory --range=origin/' .. base .. '...HEAD --reverse')
+    return
+  end
   vim.cmd('DiffviewOpen origin/' .. base .. '...HEAD')
   if state.pr_id then
     M.load_viewed()
@@ -202,7 +215,13 @@ function M.setup()
   end
   vim.api.nvim_create_user_command('PrReview', function(opts)
     M.open(opts.args)
-  end, { nargs = '?', desc = 'Checkout PR [number] and open diffview against its base' })
+  end, {
+    nargs = '*',
+    complete = function()
+      return { '--commits' }
+    end,
+    desc = 'Checkout PR [number] and open diffview against its base (--commits: one commit at a time)',
+  })
 end
 
 return M
