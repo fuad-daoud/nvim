@@ -2,7 +2,56 @@
 -- Sessions live in stdpath('data')/pr_review/sessions.json; each pane is mirrored to <key>.md next to it.
 local M = {}
 
-local ALLOWED_TOOLS = { 'Read', 'Grep', 'Glob', 'Bash(git *)', 'Bash(gh *)' }
+-- The companion is strictly read-only. `--restricted` ignores settings files (the user's global `defaultMode = auto`
+-- would otherwise auto-approve everything) and drops every tool not named in `--tools`; in print mode anything
+-- outside ALLOWED is denied rather than prompted, and DENIED wins over ALLOWED.
+local TOOLS = 'Read,Grep,Glob,Bash'
+local ALLOWED = {
+  'Bash(git *)',
+  'Bash(gh pr view *)',
+  'Bash(gh pr diff *)',
+  'Bash(gh pr checks *)',
+  'Bash(gh pr list *)',
+  'Bash(gh issue view *)',
+  'Bash(gh run view *)',
+  'Bash(gh run list *)',
+  'Bash(gh search *)',
+}
+local DENIED = {}
+for _, sub in ipairs {
+  'checkout',
+  'switch',
+  'restore',
+  'reset',
+  'stash',
+  'add',
+  'rm',
+  'mv',
+  'commit',
+  'push',
+  'pull',
+  'fetch',
+  'rebase',
+  'merge',
+  'cherry-pick',
+  'revert',
+  'clean',
+  'worktree',
+  'branch -d',
+  'branch -D',
+  'tag',
+  'am',
+  'apply',
+  'config',
+  'submodule',
+  '-c',
+  '-C',
+  '--git-dir',
+  '--work-tree',
+} do
+  table.insert(DENIED, 'Bash(git ' .. sub .. ' *)')
+end
+local TIMEOUT_MS = 10 * 60 * 1000
 local PANE_WIDTH = 60
 
 local data_dir = vim.fs.joinpath(vim.fn.stdpath 'data', 'pr_review')
@@ -43,18 +92,20 @@ local function pane_file()
   return vim.fs.joinpath(data_dir, key() .. '.md')
 end
 
+-- RFC 4122 v4 from OS randomness (math.random is unseeded in a fresh Neovim and would repeat).
 local function uuid()
-  return (
-    ('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'):gsub('[xy]', function(c)
-      local v = c == 'x' and math.random(0, 15) or math.random(8, 11)
-      return ('%x'):format(v)
-    end)
-  )
+  local b = { vim.uv.random(16):byte(1, 16) }
+  b[7] = bit.bor(bit.band(b[7], 0x0f), 0x40)
+  b[9] = bit.bor(bit.band(b[9], 0x3f), 0x80)
+  return ('%02x%02x%02x%02x-%02x%02x-%02x%02x-%02x%02x-%02x%02x%02x%02x%02x%02x'):format(unpack(b))
 end
 
 local function claude_args(extra)
-  local args = { 'claude', '-p', '--model', 'opus', '--effort', 'high', '--output-format', 'json', '--allowedTools' }
-  vim.list_extend(args, ALLOWED_TOOLS)
+  local args = { 'claude', '-p', '--model', 'opus', '--effort', 'high', '--output-format', 'json', '--restricted', '--tools', TOOLS }
+  vim.list_extend(args, { '--allowedTools' })
+  vim.list_extend(args, ALLOWED)
+  vim.list_extend(args, { '--disallowedTools' })
+  vim.list_extend(args, DENIED)
   return vim.list_extend(args, extra)
 end
 
@@ -64,9 +115,12 @@ local function claude(extra, prompt, cb)
     return cb(nil, 'claude CLI not found on PATH')
   end
   busy = true
-  vim.system(claude_args(extra), { text = true, stdin = prompt, cwd = current.root }, function(res)
+  vim.system(claude_args(extra), { text = true, stdin = prompt, cwd = current.root, timeout = TIMEOUT_MS }, function(res)
     vim.schedule(function()
       busy = false
+      if res.signal ~= 0 and res.code ~= 0 then
+        return cb(nil, ('claude gave up after %d minutes (killed)'):format(TIMEOUT_MS / 60000))
+      end
       if res.code ~= 0 then
         return cb(nil, (res.stderr ~= '' and res.stderr or res.stdout or ''):gsub('%s+$', ''))
       end
@@ -159,6 +213,27 @@ local function replace_line(row, lines)
   persist(buf)
 end
 
+-- Rewrite the placeholder at `row` every few seconds with the elapsed time until `stop()` is called.
+local function ticker(row, label)
+  local started, timer = vim.uv.now(), vim.uv.new_timer()
+  timer:start(
+    5000,
+    5000,
+    vim.schedule_wrap(function()
+      local buf = vim.fn.bufnr('pr-companion://' .. current.number)
+      if buf == -1 then
+        return
+      end
+      local secs = math.floor((vim.uv.now() - started) / 1000)
+      vim.api.nvim_buf_set_lines(buf, row, row + 1, false, { ('_%s (%dm%02ds)_'):format(label, secs / 60, secs % 60) })
+    end)
+  )
+  return function()
+    timer:stop()
+    timer:close()
+  end
+end
+
 function M.toggle()
   if not current then
     return vim.notify('pr_companion: open a PR with :PrReview first', vim.log.levels.INFO)
@@ -181,7 +256,8 @@ local function bootstrap_prompt()
     ('The PR branch is checked out in this directory; the base branch is `origin/%s`.'):format(current.base),
     'I am reviewing it in my editor and will send you selected snippets (with file path and line numbers) plus questions.',
     'Answer concisely, cite `path:line`, and say plainly when something looks wrong or when you are unsure.',
-    'You can read files and run read-only git/gh commands to gather context.',
+    'You have read-only access: file reads, grep/glob, and read-only `git`/`gh pr view|diff|checks` commands.',
+    'You cannot write files, run tests or builds, or change the working tree — do not try; reason from the code instead.',
     '',
     '## PR description',
     current.body ~= '' and current.body or '(empty)',
@@ -205,9 +281,13 @@ function M.bootstrap()
   local id = uuid()
   vim.notify('pr_companion: bootstrapping for PR #' .. current.number .. ' (this takes a minute)…', vim.log.levels.INFO)
   local row = append { '## Summary', '', '_bootstrapping…_' }
+  local stop = ticker(row + 2, 'bootstrapping…')
   claude({ '--session-id', id }, bootstrap_prompt(), function(result, err)
+    stop()
     if not result then
-      replace_line(row + 2, { '**bootstrap failed:** ' .. err })
+      local buf = open_pane()
+      vim.api.nvim_buf_set_lines(buf, row, row + 3, false, {})
+      persist(buf)
       return vim.notify('pr_companion: bootstrap failed\n' .. err, vim.log.levels.ERROR)
     end
     load_sessions()[current.url] = { session_id = id }
@@ -261,7 +341,9 @@ function M.ask(opts)
     table.insert(entry, '_thinking…_')
     local row = append(entry) + #entry - 1
     local message = code and table.concat(code, '\n') .. '\n\nQuestion: ' .. q or q
+    local stop = ticker(row, 'thinking…')
     claude({ '--resume', s.session_id }, message, function(result, err)
+      stop()
       if not result then
         return replace_line(row, { '**error:** ' .. err, '' })
       end
