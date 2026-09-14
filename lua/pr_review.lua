@@ -252,9 +252,87 @@ local function summarise_checks(rollup)
   return c
 end
 
--- `:PrMerge`: confirm, then `gh pr merge --squash --delete-branch` (or --auto while checks are pending).
+-- Run the merge with the edited message; closes diffview on success. `auto` queues it (--auto) instead.
+local function run_merge(pr, subject, body, auto)
+  local args = { 'pr', 'merge', tostring(pr.number), '--squash', '--delete-branch', '--subject', subject, '--body', body }
+  if auto then
+    table.insert(args, '--auto')
+  end
+  vim.notify(('pr_review: %s PR #%d…'):format(auto and 'queueing' or 'merging', pr.number), vim.log.levels.INFO)
+  gh(args, nil, function(out)
+    vim.schedule(function()
+      if out.code ~= 0 then
+        return vim.notify('pr_review: merge failed\n' .. (out.stderr ~= '' and out.stderr or out.stdout), vim.log.levels.ERROR)
+      end
+      vim.notify(
+        ('pr_review: PR #%d %s\n%s'):format(pr.number, auto and 'auto-merge enabled' or 'merged', vim.trim(out.stdout .. out.stderr)),
+        vim.log.levels.INFO
+      )
+      if not auto then
+        pcall(vim.cmd, 'DiffviewClose')
+      end
+    end)
+  end)
+end
+
+-- Floating gitcommit buffer prefilled with the squash message. `:w` merges, `q` aborts.
+local function edit_merge_message(pr, auto)
+  local lines = { ('%s (#%d)'):format(pr.title, pr.number), '' }
+  vim.list_extend(lines, vim.split(pr.body ~= vim.NIL and pr.body or '', '\n'))
+  vim.list_extend(lines, {
+    '',
+    ('# Squash-merging PR #%d into %s (%s).'):format(pr.number, pr.baseRefName, auto and 'auto-merge when checks pass' or 'now'),
+    '# First line is the commit subject, the rest is the body. Lines starting with # are ignored.',
+    '# :w merges with this message · q aborts.',
+    '#',
+    '# Commits being squashed:',
+  })
+  for _, c in ipairs(pr.commits or {}) do
+    table.insert(lines, ('#   %s %s'):format(c.oid:sub(1, 7), c.messageHeadline))
+  end
+  local buf = vim.api.nvim_create_buf(false, true)
+  vim.api.nvim_buf_set_name(buf, 'pr-merge://' .. pr.number)
+  vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+  vim.bo[buf].buftype = 'acwrite'
+  vim.bo[buf].bufhidden = 'wipe'
+  vim.bo[buf].filetype = 'gitcommit'
+  local width, height = math.min(100, vim.o.columns - 4), math.min(#lines + 2, vim.o.lines - 4)
+  local win = vim.api.nvim_open_win(buf, true, {
+    relative = 'editor',
+    width = width,
+    height = height,
+    row = math.floor((vim.o.lines - height) / 2),
+    col = math.floor((vim.o.columns - width) / 2),
+    style = 'minimal',
+    border = 'rounded',
+    title = (' Squash merge #%d '):format(pr.number),
+  })
+  vim.wo[win].wrap = true
+  vim.keymap.set('n', 'q', function()
+    vim.api.nvim_win_close(win, true)
+    vim.notify('pr_review: merge aborted', vim.log.levels.INFO)
+  end, { buffer = buf, desc = 'Abort merge' })
+  vim.api.nvim_create_autocmd('BufWriteCmd', {
+    buffer = buf,
+    callback = function()
+      local msg = vim.tbl_filter(function(l)
+        return not l:match '^#'
+      end, vim.api.nvim_buf_get_lines(buf, 0, -1, false))
+      local subject = vim.trim(msg[1] or '')
+      if subject == '' then
+        return vim.notify('pr_review: empty commit subject', vim.log.levels.ERROR)
+      end
+      local body = vim.trim(table.concat(vim.list_slice(msg, 2), '\n'))
+      vim.bo[buf].modified = false
+      vim.api.nvim_win_close(win, true)
+      run_merge(pr, subject, body, auto)
+    end,
+  })
+end
+
+-- `:PrMerge`: readiness summary → confirm → edit squash message → `gh pr merge --squash --delete-branch`.
 function M.merge()
-  local fields = 'number,title,url,baseRefName,headRefName,mergeable,reviewDecision,isDraft,state,statusCheckRollup'
+  local fields = 'number,title,body,url,baseRefName,headRefName,mergeable,reviewDecision,isDraft,state,statusCheckRollup,commits'
   local res = gh({ 'pr', 'view', '--json', fields }):wait()
   if res.code ~= 0 then
     return vim.notify('pr_review: not on a PR branch\n' .. (res.stderr or ''), vim.log.levels.ERROR)
@@ -292,25 +370,7 @@ function M.merge()
     if not choice or choice == 'Cancel' then
       return
     end
-    local args = { 'pr', 'merge', tostring(pr.number), '--squash', '--delete-branch' }
-    if choice:find '^Enable auto' then
-      table.insert(args, '--auto')
-    end
-    vim.notify('pr_review: gh ' .. table.concat(args, ' '), vim.log.levels.INFO)
-    gh(args, nil, function(out)
-      vim.schedule(function()
-        if out.code ~= 0 then
-          return vim.notify('pr_review: merge failed\n' .. (out.stderr ~= '' and out.stderr or out.stdout), vim.log.levels.ERROR)
-        end
-        vim.notify(
-          ('pr_review: PR #%d %s\n%s'):format(pr.number, choice:find '^Enable auto' and 'auto-merge enabled' or 'merged', vim.trim(out.stdout .. out.stderr)),
-          vim.log.levels.INFO
-        )
-        if not choice:find '^Enable auto' then
-          pcall(vim.cmd, 'DiffviewClose')
-        end
-      end)
-    end)
+    edit_merge_message(pr, choice:find '^Enable auto' ~= nil)
   end)
 end
 
