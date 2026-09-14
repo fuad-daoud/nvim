@@ -101,7 +101,8 @@ local function uuid()
 end
 
 local function claude_args(extra)
-  local args = { 'claude', '-p', '--model', 'opus', '--effort', 'high', '--output-format', 'json', '--restricted', '--tools', TOOLS }
+  local args = { 'claude', '-p', '--model', 'opus', '--effort', 'high', '--restricted', '--tools', TOOLS }
+  vim.list_extend(args, { '--output-format', 'stream-json', '--verbose', '--include-partial-messages' })
   vim.list_extend(args, { '--allowedTools' })
   vim.list_extend(args, ALLOWED)
   vim.list_extend(args, { '--disallowedTools' })
@@ -109,29 +110,72 @@ local function claude_args(extra)
   return vim.list_extend(args, extra)
 end
 
--- Run claude headless with `prompt` on stdin; cb(result_text|nil, err).
-local function claude(extra, prompt, cb)
+-- One-line description of a tool call for the activity log.
+local function describe_tool(block)
+  local input = block.input or {}
+  local what = input.command or input.file_path or input.pattern or input.path or ''
+  what = tostring(what):gsub('\n.*', ''):sub(1, 70)
+  return ('· %s %s'):format(block.name, what)
+end
+
+-- Run claude headless with `prompt` on stdin, streaming events. `on_event(live)` is called (on the main loop)
+-- whenever the live state changes: live = { activity = {…}, text = '' }. cb(result_text|nil, err) at the end.
+local function claude(extra, prompt, on_event, cb)
   if vim.fn.executable 'claude' ~= 1 then
     return cb(nil, 'claude CLI not found on PATH')
   end
   busy = true
-  vim.system(claude_args(extra), { text = true, stdin = prompt, cwd = current.root, timeout = TIMEOUT_MS }, function(res)
+  local live, pending, result = { activity = {}, text = '' }, '', nil
+  local function handle(ev)
+    if ev.type == 'assistant' then
+      for _, block in ipairs(ev.message and ev.message.content or {}) do
+        if block.type == 'tool_use' then
+          table.insert(live.activity, describe_tool(block))
+        end
+      end
+    elseif ev.type == 'stream_event' and ev.event then
+      local e = ev.event
+      if e.type == 'message_start' then
+        live.text = ''
+      elseif e.type == 'content_block_start' and e.content_block and e.content_block.type == 'thinking' then
+        table.insert(live.activity, '· 💭 thinking')
+      elseif e.type == 'content_block_delta' and e.delta and e.delta.type == 'text_delta' then
+        live.text = live.text .. e.delta.text
+      end
+    elseif ev.type == 'result' then
+      result = ev
+    end
+  end
+  local function on_stdout(_, data)
+    if not data then
+      return
+    end
+    pending = pending .. data
+    local lines = vim.split(pending, '\n', { plain = true })
+    pending = table.remove(lines)
+    vim.schedule(function()
+      for _, line in ipairs(lines) do
+        local ok, ev = pcall(vim.json.decode, line)
+        if ok and type(ev) == 'table' then
+          handle(ev)
+        end
+      end
+      on_event(live)
+    end)
+  end
+  vim.system(claude_args(extra), { text = true, stdin = prompt, cwd = current.root, timeout = TIMEOUT_MS, stdout = on_stdout }, function(res)
     vim.schedule(function()
       busy = false
       if res.signal ~= 0 and res.code ~= 0 then
         return cb(nil, ('claude gave up after %d minutes (killed)'):format(TIMEOUT_MS / 60000))
       end
-      if res.code ~= 0 then
-        return cb(nil, (res.stderr ~= '' and res.stderr or res.stdout or ''):gsub('%s+$', ''))
+      if not result then
+        return cb(nil, res.code ~= 0 and (res.stderr ~= '' and res.stderr or 'exit ' .. res.code) or 'claude ended without a result')
       end
-      local ok, out = pcall(vim.json.decode, res.stdout)
-      if not ok or type(out) ~= 'table' then
-        return cb(nil, 'unexpected claude output:\n' .. res.stdout)
+      if result.is_error then
+        return cb(nil, tostring(result.result))
       end
-      if out.is_error then
-        return cb(nil, tostring(out.result))
-      end
-      cb(out.result or '')
+      cb(result.result or live.text)
     end)
   end)
 end
@@ -206,32 +250,45 @@ local function append(lines)
   return row
 end
 
-local function replace_line(row, lines)
-  local buf, win = open_pane()
-  vim.api.nvim_buf_set_lines(buf, row, row + 1, false, lines)
-  vim.api.nvim_win_set_cursor(win, { math.min(row + 1, vim.api.nvim_buf_line_count(buf)), 0 })
-  persist(buf)
+-- A region of the pane owned by one in-flight request: `render(lines)` replaces it in place.
+local function region(row, len)
+  local r = { row = row, len = len }
+  function r.render(lines)
+    local buf, win = open_pane()
+    vim.api.nvim_buf_set_lines(buf, r.row, r.row + r.len, false, lines)
+    r.len = #lines
+    vim.api.nvim_win_set_cursor(win, { math.min(r.row + r.len, vim.api.nvim_buf_line_count(buf)), 0 })
+    persist(buf)
+  end
+  return r
 end
 
--- Rewrite the placeholder at `row` every few seconds with the elapsed time until `stop()` is called.
-local function ticker(row, label)
-  local started, timer = vim.uv.now(), vim.uv.new_timer()
-  timer:start(
-    5000,
-    5000,
-    vim.schedule_wrap(function()
-      local buf = vim.fn.bufnr('pr-companion://' .. current.number)
-      if buf == -1 then
-        return
-      end
-      local secs = math.floor((vim.uv.now() - started) / 1000)
-      vim.api.nvim_buf_set_lines(buf, row, row + 1, false, { ('_%s (%dm%02ds)_'):format(label, secs / 60, secs % 60) })
-    end)
-  )
-  return function()
+-- Runs a request into `r`: status line with elapsed time + recent activity + streamed text while working;
+-- the final answer (or an error line) when done. Re-renders on events and every 2 s for the clock.
+local function stream_into(r, label, extra, prompt, on_done)
+  local started, timer, live = vim.uv.now(), vim.uv.new_timer(), { activity = {}, text = '' }
+  local function draw()
+    local secs = math.floor((vim.uv.now() - started) / 1000)
+    local lines = { ('_%s (%dm%02ds)_'):format(label, secs / 60, secs % 60) }
+    local n = #live.activity
+    for i = math.max(1, n - 5), n do
+      table.insert(lines, live.activity[i])
+    end
+    if live.text ~= '' then
+      table.insert(lines, '')
+      vim.list_extend(lines, vim.split(live.text, '\n'))
+    end
+    r.render(lines)
+  end
+  timer:start(2000, 2000, vim.schedule_wrap(draw))
+  claude(extra, prompt, function(l)
+    live = l
+    draw()
+  end, function(result, err)
     timer:stop()
     timer:close()
-  end
+    on_done(result, err)
+  end)
 end
 
 function M.toggle()
@@ -281,18 +338,17 @@ function M.bootstrap()
   local id = uuid()
   vim.notify('pr_companion: bootstrapping for PR #' .. current.number .. ' (this takes a minute)…', vim.log.levels.INFO)
   local row = append { '## Summary', '', '_bootstrapping…_' }
-  local stop = ticker(row + 2, 'bootstrapping…')
-  claude({ '--session-id', id }, bootstrap_prompt(), function(result, err)
-    stop()
+  local r = region(row + 2, 1)
+  stream_into(r, 'bootstrapping…', { '--session-id', id }, bootstrap_prompt(), function(result, err)
     if not result then
       local buf = open_pane()
-      vim.api.nvim_buf_set_lines(buf, row, row + 3, false, {})
+      vim.api.nvim_buf_set_lines(buf, row, r.row + r.len, false, {})
       persist(buf)
       return vim.notify('pr_companion: bootstrap failed\n' .. err, vim.log.levels.ERROR)
     end
     load_sessions()[current.url] = { session_id = id }
     save_sessions()
-    replace_line(row + 2, vim.list_extend(vim.split(result, '\n'), { '' }))
+    r.render(vim.list_extend(vim.split(result, '\n'), { '' }))
     vim.notify('pr_companion: ready', vim.log.levels.INFO)
   end)
 end
@@ -339,15 +395,13 @@ function M.ask(opts)
       table.insert(entry, '')
     end
     table.insert(entry, '_thinking…_')
-    local row = append(entry) + #entry - 1
+    local r = region(append(entry) + #entry - 1, 1)
     local message = code and table.concat(code, '\n') .. '\n\nQuestion: ' .. q or q
-    local stop = ticker(row, 'thinking…')
-    claude({ '--resume', s.session_id }, message, function(result, err)
-      stop()
+    stream_into(r, 'thinking…', { '--resume', s.session_id }, message, function(result, err)
       if not result then
-        return replace_line(row, { '**error:** ' .. err, '' })
+        return r.render { '**error:** ' .. err, '' }
       end
-      replace_line(row, vim.list_extend(vim.split(result, '\n'), { '' }))
+      r.render(vim.list_extend(vim.split(result, '\n'), { '' }))
     end)
   end)
 end
