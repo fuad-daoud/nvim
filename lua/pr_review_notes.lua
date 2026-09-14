@@ -122,22 +122,17 @@ function M.load_threads()
   page(nil)
 end
 
--- Location from the current diff buffer + cursor/visual range. Returns {path, side, line, start_line?} or nil.
-local function note_loc()
+-- Location from the current diff buffer + command range. Returns {path, side, line, start_line?} or nil.
+local function note_loc(opts)
   local buf = vim.api.nvim_get_current_buf()
   local path, side = M._parse_diff_name(vim.api.nvim_buf_get_name(buf), head_rev())
   if not path then
     vim.notify('pr_review_notes: not in a diff buffer', vim.log.levels.INFO)
     return
   end
-  local mode = vim.fn.mode()
   local a, b
-  if mode:match '[vV]' then
-    a, b = vim.fn.line 'v', vim.fn.line '.'
-    if a > b then
-      a, b = b, a
-    end
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes('<Esc>', true, false, true), 'nx', false)
+  if opts and opts.range and opts.range > 0 then
+    a, b = opts.line1, opts.line2
   else
     a = vim.api.nvim_win_get_cursor(0)[1]
     b = a
@@ -157,11 +152,11 @@ local function find_note(path, side, line)
   end
 end
 
-function M.add_note()
+function M.add_note(opts)
   if not current then
     return vim.notify('pr_review_notes: open a PR with :PrReview first', vim.log.levels.INFO)
   end
-  local loc = note_loc()
+  local loc = note_loc(opts)
   if not loc then
     return
   end
