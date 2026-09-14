@@ -132,12 +132,15 @@ PR / branch review via `sindrets/diffview.nvim`. Lazy-loaded on its commands. Fi
 | `<leader>gv` | `:PrReview` — diffview of current branch vs its PR base |
 | `<leader>gc` | `:PrReview --commits` — commit-by-commit history of the PR |
 | `<leader>gm` | `:PrMerge` — squash-merge the current PR: shows review decision + check rollup, confirms via `vim.ui.select` (offers `--auto` while checks are pending), then opens a floating `gitcommit` buffer (`pr-merge://N`, `acwrite`) prefilled with `title (#N)` + PR body and the squashed commits as comments — `:w` runs `gh pr merge --squash --delete-branch --subject … --body …` with the edited message, `q` aborts. Refuses drafts, closed PRs and conflicts. Closes diffview on success; `gh` switches you to the base branch |
+| `<leader>gu` | `:PrUrl` — copy the current view's PR URL to the system clipboard |
 | `<leader>gV` | `:DiffviewClose` |
 | `-` (file panel) | On a file: toggle its **Viewed** state on GitHub (`markFileAsViewed` / `unmarkFileAsViewed`) and move to the next entry. On a directory: mark every file under it, or unmark all if every one is already viewed — aliased GraphQL mutations in batches of 25 (GitHub rejects ~55+ per request with "Resource limits for this query exceeded"). Optimistic, each failed batch reverted |
 
 Viewed files — and *collapsed* directories whose files are all viewed (matching diffview's `only_folded` folder status) — show `✓` in place of the status letter and are dimmed; the "Changes" title gets a `✓ n/total` counter. Decorations are extmarks painted by a wrapper around `FilePanel:redraw`. On a non-PR branch `-` just notifies.
 
 Inside diffview (stock bindings): `<Tab>`/`<S-Tab>` next/prev file · `]c`/`[c` hunks · `g?` help. The right-hand side is a real buffer, so LSP (`gd`, hover) works while reading.
+
+The file panel's path line shows `PR #<n>` for the PR under review. It is stored on the diffview *view* object (`view.pr`, set in `pr_review.open`), so each tab shows its own PR; `require('pr_review').current()` returns `{number, url, title}` for the active tab (backs `:PrUrl`).
 
 #### Review notes (`lua/pr_review_notes.lua`)
 

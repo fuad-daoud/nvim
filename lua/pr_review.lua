@@ -78,6 +78,18 @@ function M.decorate(panel)
     local counter = { { ' ✓ ' .. done .. '/' .. total, 'DiffviewFilePanelCounter' } }
     vim.api.nvim_buf_set_extmark(buf, ns, title.lstart, 0, { virt_text = counter, virt_text_pos = 'eol' })
   end
+  -- PR number on the panel's path line, read from the view that owns this panel (per-tab).
+  local pr
+  for _, view in ipairs(require('diffview.lib').views) do
+    if view.panel == panel then
+      pr = view.pr
+      break
+    end
+  end
+  local path = panel.components.path and panel.components.path.comp
+  if pr and path and path.lstart then
+    vim.api.nvim_buf_set_extmark(buf, ns, path.lstart, 0, { virt_text = { { '  PR #' .. pr.number, 'DiffviewFilePanelCounter' } }, virt_text_pos = 'eol' })
+  end
 end
 
 local function redraw_panel()
@@ -229,10 +241,20 @@ function M.open(args)
   end
   vim.cmd('DiffviewOpen origin/' .. base .. '...HEAD')
   if pr then
+    local view = require('diffview.lib').get_current_view()
+    if view then
+      view.pr = { number = pr.number, url = pr.url, title = pr.title } -- per-view so each tab shows its own PR
+    end
     M.load_viewed()
     require('pr_companion').offer(pr)
     require('pr_review_notes').attach(pr)
   end
+end
+
+-- The PR shown in the current diffview tab (per-view), or nil. Used by :PrUrl and the panel header.
+function M.current()
+  local view = require('diffview.lib').get_current_view()
+  return view and view.pr or nil
 end
 
 -- Summarise statusCheckRollup as { ok = n, failed = n, pending = n, names = { failed/pending check names } }.
@@ -401,6 +423,14 @@ function M.setup()
     M.decorate(self)
   end
   vim.api.nvim_create_user_command('PrMerge', M.merge, { desc = 'Squash-merge the current PR (gh pr merge --squash --delete-branch)' })
+  vim.api.nvim_create_user_command('PrUrl', function()
+    local pr = M.current()
+    if not pr then
+      return vim.notify('pr_review: no PR in the current view', vim.log.levels.INFO)
+    end
+    vim.fn.setreg('+', pr.url)
+    vim.notify('pr_review: copied ' .. pr.url, vim.log.levels.INFO)
+  end, { desc = 'Copy the current PR URL to the system clipboard' })
   vim.api.nvim_create_user_command('PrReview', function(opts)
     M.open(opts.args)
   end, {
