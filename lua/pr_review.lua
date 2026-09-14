@@ -234,6 +234,86 @@ function M.open(args)
   end
 end
 
+-- Summarise statusCheckRollup as { ok = n, failed = n, pending = n, names = { failed/pending check names } }.
+local function summarise_checks(rollup)
+  local c = { ok = 0, failed = 0, pending = 0, names = {} }
+  for _, check in ipairs(rollup or {}) do
+    local state = check.conclusion or check.state or check.status or ''
+    if state == 'SUCCESS' or state == 'NEUTRAL' or state == 'SKIPPED' then
+      c.ok = c.ok + 1
+    elseif state == 'FAILURE' or state == 'ERROR' or state == 'CANCELLED' or state == 'TIMED_OUT' or state == 'ACTION_REQUIRED' then
+      c.failed = c.failed + 1
+      table.insert(c.names, (check.name or check.context or '?') .. ' ✗')
+    else
+      c.pending = c.pending + 1
+      table.insert(c.names, (check.name or check.context or '?') .. ' …')
+    end
+  end
+  return c
+end
+
+-- `:PrMerge`: confirm, then `gh pr merge --squash --delete-branch` (or --auto while checks are pending).
+function M.merge()
+  local fields = 'number,title,url,baseRefName,headRefName,mergeable,reviewDecision,isDraft,state,statusCheckRollup'
+  local res = gh({ 'pr', 'view', '--json', fields }):wait()
+  if res.code ~= 0 then
+    return vim.notify('pr_review: not on a PR branch\n' .. (res.stderr or ''), vim.log.levels.ERROR)
+  end
+  local pr = vim.json.decode(res.stdout)
+  if pr.state ~= 'OPEN' then
+    return vim.notify(('pr_review: PR #%d is %s'):format(pr.number, pr.state), vim.log.levels.WARN)
+  end
+  if pr.isDraft then
+    return vim.notify(('pr_review: PR #%d is a draft'):format(pr.number), vim.log.levels.WARN)
+  end
+  if pr.mergeable == 'CONFLICTING' then
+    return vim.notify(('pr_review: PR #%d has merge conflicts'):format(pr.number), vim.log.levels.ERROR)
+  end
+  local checks = summarise_checks(pr.statusCheckRollup)
+  local summary = ('#%d %s\n%s → %s · review: %s · checks: %d ok, %d failed, %d pending'):format(
+    pr.number,
+    pr.title,
+    pr.headRefName,
+    pr.baseRefName,
+    pr.reviewDecision ~= vim.NIL and pr.reviewDecision or 'none',
+    checks.ok,
+    checks.failed,
+    checks.pending
+  )
+  if #checks.names > 0 then
+    summary = summary .. '\n' .. table.concat(checks.names, ', ')
+  end
+  vim.notify(summary, vim.log.levels.INFO)
+  local choices = { 'Squash merge + delete branch', 'Cancel' }
+  if checks.pending > 0 then
+    table.insert(choices, 1, 'Enable auto-merge (squash + delete branch when checks pass)')
+  end
+  vim.ui.select(choices, { prompt = ('Merge PR #%d into %s?'):format(pr.number, pr.baseRefName) }, function(choice)
+    if not choice or choice == 'Cancel' then
+      return
+    end
+    local args = { 'pr', 'merge', tostring(pr.number), '--squash', '--delete-branch' }
+    if choice:find '^Enable auto' then
+      table.insert(args, '--auto')
+    end
+    vim.notify('pr_review: gh ' .. table.concat(args, ' '), vim.log.levels.INFO)
+    gh(args, nil, function(out)
+      vim.schedule(function()
+        if out.code ~= 0 then
+          return vim.notify('pr_review: merge failed\n' .. (out.stderr ~= '' and out.stderr or out.stdout), vim.log.levels.ERROR)
+        end
+        vim.notify(
+          ('pr_review: PR #%d %s\n%s'):format(pr.number, choice:find '^Enable auto' and 'auto-merge enabled' or 'merged', vim.trim(out.stdout .. out.stderr)),
+          vim.log.levels.INFO
+        )
+        if not choice:find '^Enable auto' then
+          pcall(vim.cmd, 'DiffviewClose')
+        end
+      end)
+    end)
+  end)
+end
+
 -- Debug: print viewed state + extmarks for the entry under the cursor (and every file under it, for a directory).
 function M.inspect()
   local panel = current_panel()
@@ -259,6 +339,7 @@ function M.setup()
     redraw(self, ...)
     M.decorate(self)
   end
+  vim.api.nvim_create_user_command('PrMerge', M.merge, { desc = 'Squash-merge the current PR (gh pr merge --squash --delete-branch)' })
   vim.api.nvim_create_user_command('PrReview', function(opts)
     M.open(opts.args)
   end, {
