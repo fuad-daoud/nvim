@@ -172,7 +172,7 @@ Loads `.nvim.lua` or `.nvimrc` from the project root when present. Used for per-
 
 ## persistence.lua / undotree.lua / pomo.lua
 
-- **persistence**: session save/restore
+- **persistence**: session save/restore. A `User PersistenceSavePre` autocmd (`init`) closes all diffview views and wipes `diffview://` / `pr-*://` scratch buffers before every save — otherwise a restored session brings them back as broken empty tabs and gopls floods `-32700 DocumentURI scheme is not 'file'`.
 - **undotree**: toggle with `<leader>u` (keymap in `lua/scripts/keymaps.lua`)
 - **pomo**: pomodoro timer; timers browsable via `<leader>pt` (Telescope extension)
 
