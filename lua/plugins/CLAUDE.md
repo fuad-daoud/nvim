@@ -53,7 +53,7 @@ DAP UI opens automatically on session start, closes on terminate/exit. Layout: s
 
 Central hub for many UX features via `folke/snacks.nvim`.
 
-**Enabled modules**: `bigfile`, `quickfile`, `picker` (with custom project confirm), `dashboard`, `indent`, `lazygit`, `words`.
+**Enabled modules**: `bigfile`, `quickfile`, `input` (floating `vim.ui.input`, used by `:PrAsk`), `picker` (with custom project confirm), `dashboard`, `indent`, `lazygit`, `words`.
 
 **Dashboard keys**: `r` recent files, `n` new file, `f` file explorer, `p` projects, `c` config files, `z` Lazy, `q` quit.
 

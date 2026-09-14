@@ -6,6 +6,7 @@ return {
   opts = {
     bigfile = { enabled = true },
     quickfile = { enabled = true },
+    input = { enabled = true }, -- floating vim.ui.input (used by :PrAsk)
     picker = {
       sources = {
         projects = {
