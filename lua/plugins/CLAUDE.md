@@ -138,6 +138,16 @@ Viewed files — and *collapsed* directories whose files are all viewed (matchin
 
 Inside diffview (stock bindings): `<Tab>`/`<S-Tab>` next/prev file · `]c`/`[c` hunks · `g?` help. The right-hand side is a real buffer, so LSP (`gd`, hover) works while reading.
 
+### AI companion (`lua/pr_companion.lua`)
+
+One headless Claude Code session per PR (`claude -p --model opus --effort high`, read-only tools: `Read Grep Glob "Bash(git *)" "Bash(gh *)"`). Sessions keyed by PR URL in `stdpath('data')/pr_review/sessions.json`; the conversation pane is mirrored to `<owner>_<repo>_<n>.md` beside it and reloads with the PR.
+
+- `:PrReview` on a PR with no session → `vim.ui.select` popup "Bootstrap AI companion?" — Yes runs the bootstrap (PR description + orient via `git diff`, replies with a summary into the pane); No records `declined` so it stops asking.
+- `:PrCompanion [bootstrap|toggle|chat|reset]` — bare: bootstrap if none, else toggle the pane. `reset` forgets the session + pane file.
+- `:PrAsk` / `<leader>ga` — visual: sends the selected lines as `File: path  lines a–b  (PR head|base <branch>)` + fenced code + your question (`vim.ui.input`); normal: question only. Answer replaces the `_thinking…_` placeholder in the pane. One request at a time.
+- `<leader>gA` — toggle the pane (right split, 60 cols, markdown; `q` closes).
+- `:PrChat` — toggleterm float running `claude --resume <id>` for a long conversation with the same memory.
+
 ## config-local.lua
 
 Loads `.nvim.lua` or `.nvimrc` from the project root when present. Used for per-project settings like Go build tags. Hash-verified on first load.

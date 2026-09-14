@@ -212,11 +212,12 @@ function M.open(args)
     end
   end
   M.reset()
-  local base = 'master'
-  local res = gh({ 'pr', 'view', '--json', 'id,baseRefName' }):wait()
+  local base, pr = 'master', nil
+  local res = gh({ 'pr', 'view', '--json', 'id,baseRefName,number,title,body,url' }):wait()
   if res.code == 0 then
-    local ok, pr = pcall(vim.json.decode, res.stdout)
-    if ok and pr.id then
+    local ok, decoded = pcall(vim.json.decode, res.stdout)
+    if ok and decoded.id then
+      pr = decoded
       state.pr_id = pr.id
       base = pr.baseRefName
     end
@@ -227,8 +228,9 @@ function M.open(args)
     return
   end
   vim.cmd('DiffviewOpen origin/' .. base .. '...HEAD')
-  if state.pr_id then
+  if pr then
     M.load_viewed()
+    require('pr_companion').offer(pr)
   end
 end
 

@@ -59,3 +59,5 @@ See `lua/plugins/CLAUDE.md` for details on each plugin file.
 `lua/utils.lua` — small module for helpers shared across plugin specs. Currently exports `emit_osc7(cwd?)` which writes an OSC 7 terminal CWD notification (used by snacks project picker).
 
 `lua/pr_review.lua` — PR review on top of diffview: `:PrReview` open flow and GitHub-synced "viewed" marks (see `lua/plugins/CLAUDE.md` → diffview.lua).
+
+`lua/pr_companion.lua` — per-PR headless Claude Code review companion (`:PrCompanion`, `:PrAsk`, `:PrChat`); sessions and pane transcripts under `stdpath('data')/pr_review/`.
