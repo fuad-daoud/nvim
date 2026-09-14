@@ -139,6 +139,18 @@ Viewed files — and *collapsed* directories whose files are all viewed (matchin
 
 Inside diffview (stock bindings): `<Tab>`/`<S-Tab>` next/prev file · `]c`/`[c` hunks · `g?` help. The right-hand side is a real buffer, so LSP (`gd`, hover) works while reading.
 
+#### Review notes (`lua/pr_review_notes.lua`)
+
+Draft a GitHub review (line/range notes + summary + verdict) from the diffview PR view and submit it in one API call.
+
+| Key | Action |
+|-----|--------|
+| `<leader>gn` | `:PrNote` — add/edit a note on the current line or visual range, in either pane |
+| `<leader>gN` | `:PrNoteDelete` — delete the note under the cursor |
+| `<leader>gs` | `:PrReviewSubmit` — pick Comment / Approve / Request changes, edit the summary in a floating buffer, `:w` submits (`gh api POST .../reviews`) |
+
+`:PrReviewDiscard` clears the pending review. Notes are persisted to `<key>.review.json` under `stdpath('data')/pr_review/` (`M.key` from the PR URL) so a draft survives reopening the PR. Existing review threads are fetched via GraphQL and rendered inline as read-only virtual text alongside your draft notes.
+
 ### AI companion (`lua/pr_companion.lua`)
 
 One headless Claude Code session per PR (`claude -p --model opus --effort high`). **Strictly read-only**: `--restricted --tools Read,Grep,Glob,Bash` (restricted mode ignores settings files — the user's global `defaultMode = auto` would otherwise auto-approve everything — and its sandbox refuses file writes), `--allowedTools` limited to `git *` and `gh pr view|diff|checks|list`, `gh issue view`, `gh run *`, `gh search`, and `--disallowedTools` for every mutating git subcommand (`checkout`, `reset`, `stash`, `commit`, `push`, `-c`, `-C`, …). Requests are killed after 10 min; the pane placeholder shows elapsed time. Sessions keyed by PR URL in `stdpath('data')/pr_review/sessions.json`; the conversation pane is mirrored to `<owner>_<repo>_<n>.md` beside it and reloads with the PR.

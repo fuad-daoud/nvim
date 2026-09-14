@@ -231,6 +231,7 @@ function M.open(args)
   if pr then
     M.load_viewed()
     require('pr_companion').offer(pr)
+    require('pr_review_notes').attach(pr)
   end
 end
 

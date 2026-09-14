@@ -254,6 +254,106 @@ function M.discard()
   M.redraw_all()
 end
 
+local function post_review()
+  local payload = M._build_payload()
+  local c = current
+  vim.notify(('pr_review_notes: submitting %s (%d comments)…'):format(payload.event, #payload.comments), vim.log.levels.INFO)
+  vim.system(
+    { 'gh', 'api', '--method', 'POST', ('repos/%s/%s/pulls/%d/reviews'):format(c.owner, c.repo, c.number), '--input', '-' },
+    { text = true, cwd = c.root, stdin = vim.json.encode(payload) },
+    function(res)
+      vim.schedule(function()
+        if res.code ~= 0 then
+          return vim.notify('pr_review_notes: submit failed\n' .. ((res.stderr ~= '' and res.stderr) or res.stdout), vim.log.levels.ERROR)
+        end
+        vim.notify(('pr_review_notes: review submitted (%s)'):format(payload.event), vim.log.levels.INFO)
+        M.discard()
+        M.load_threads()
+      end)
+    end
+  )
+end
+
+function M.submit()
+  if not current then
+    return vim.notify('pr_review_notes: open a PR with :PrReview first', vim.log.levels.INFO)
+  end
+  if #review.notes == 0 and review.summary == '' then
+    return vim.notify('pr_review_notes: no notes and no summary', vim.log.levels.INFO)
+  end
+  vim.ui.select(
+    { 'Comment', 'Approve', 'Request changes' },
+    { prompt = ('Submit review on PR #%d (%d notes)'):format(current.number, #review.notes) },
+    function(choice)
+      if not choice then
+        return
+      end
+      review.verdict = ({ Comment = 'COMMENT', Approve = 'APPROVE', ['Request changes'] = 'REQUEST_CHANGES' })[choice]
+      -- floating summary editor
+      local buf = vim.api.nvim_create_buf(false, true)
+      vim.api.nvim_buf_set_name(buf, 'pr-review-summary://' .. current.number)
+      local lines = vim.split(review.summary, '\n')
+      vim.list_extend(lines, {
+        '',
+        ('# %s review of PR #%d · %d line notes.'):format(review.verdict, current.number, #review.notes),
+        '# Text above is the review summary. :w submits · q cancels.',
+      })
+      vim.api.nvim_buf_set_lines(buf, 0, -1, false, lines)
+      vim.bo[buf].buftype = 'acwrite'
+      vim.bo[buf].bufhidden = 'wipe'
+      vim.bo[buf].filetype = 'gitcommit'
+      local width, height = math.min(90, vim.o.columns - 4), math.min(#lines + 4, vim.o.lines - 4)
+      local win = vim.api.nvim_open_win(buf, true, {
+        relative = 'editor',
+        width = width,
+        height = height,
+        row = math.floor((vim.o.lines - height) / 2),
+        col = math.floor((vim.o.columns - width) / 2),
+        style = 'minimal',
+        border = 'rounded',
+        title = (' %s review #%d '):format(review.verdict, current.number),
+      })
+      vim.wo[win].wrap = true
+      vim.keymap.set('n', 'q', function()
+        vim.api.nvim_win_close(win, true)
+      end, { buffer = buf })
+      vim.api.nvim_create_autocmd('BufWriteCmd', {
+        buffer = buf,
+        callback = function()
+          local body = vim.tbl_filter(function(l)
+            return not l:match '^#'
+          end, vim.api.nvim_buf_get_lines(buf, 0, -1, false))
+          review.summary = vim.trim(table.concat(body, '\n'))
+          if review.verdict == 'REQUEST_CHANGES' and #review.notes == 0 and review.summary == '' then
+            vim.bo[buf].modified = false
+            return vim.notify('pr_review_notes: request-changes needs a summary or notes', vim.log.levels.ERROR)
+          end
+          vim.bo[buf].modified = false
+          vim.api.nvim_win_close(win, true)
+          post_review()
+        end,
+      })
+    end
+  )
+end
+
+function M.setup()
+  vim.api.nvim_create_user_command('PrNote', M.add_note, { range = true, desc = 'Add/edit a review note on the current line/selection' })
+  vim.api.nvim_create_user_command('PrNoteDelete', M.delete_note, { desc = 'Delete the review note under the cursor' })
+  vim.api.nvim_create_user_command('PrReviewSubmit', M.submit, { desc = 'Submit the pending review (approve / request changes / comment)' })
+  vim.api.nvim_create_user_command('PrReviewDiscard', M.discard, { desc = 'Discard the pending review notes' })
+  vim.api.nvim_create_autocmd({ 'BufWinEnter', 'BufReadPost' }, {
+    pattern = 'diffview://*',
+    callback = function(a)
+      if vim.api.nvim_buf_get_name(a.buf):find '%.git/' then
+        vim.schedule(function()
+          M.decorate(a.buf)
+        end)
+      end
+    end,
+  })
+end
+
 -- pr = { url, number, baseRefName, title, body } from pr_review; owner/repo parsed from the url.
 function M.attach(pr)
   local owner, repo = pr.url:match 'github.com/([^/]+)/([^/]+)/pull/'
