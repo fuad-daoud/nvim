@@ -240,24 +240,33 @@ local function persist(buf)
   f:close()
 end
 
--- Append lines to the pane and scroll it to the bottom. Returns the row of the first appended line.
+-- Scroll the pane to `line` only if it is currently visible — writing must never force a hidden pane back open.
+local function scroll_if_visible(line)
+  local win = pane_win()
+  if win then
+    vim.api.nvim_win_set_cursor(win, { line, 0 })
+  end
+end
+
+-- Append lines to the pane buffer (creating it if needed) and scroll to the bottom if visible. Returns the first row.
+-- Deliberately does NOT open the window: a closed pane keeps receiving stream updates in the background.
 local function append(lines)
-  local buf, win = open_pane()
+  local buf = pane_buf()
   local row = vim.api.nvim_buf_line_count(buf)
   vim.api.nvim_buf_set_lines(buf, row, row, false, lines)
-  vim.api.nvim_win_set_cursor(win, { vim.api.nvim_buf_line_count(buf), 0 })
+  scroll_if_visible(vim.api.nvim_buf_line_count(buf))
   persist(buf)
   return row
 end
 
--- A region of the pane owned by one in-flight request: `render(lines)` replaces it in place.
+-- A region of the pane owned by one in-flight request: `render(lines)` replaces it in place. Buffer-only, never opens.
 local function region(row, len)
   local r = { row = row, len = len }
   function r.render(lines)
-    local buf, win = open_pane()
+    local buf = pane_buf()
     vim.api.nvim_buf_set_lines(buf, r.row, r.row + r.len, false, lines)
     r.len = #lines
-    vim.api.nvim_win_set_cursor(win, { math.min(r.row + r.len, vim.api.nvim_buf_line_count(buf)), 0 })
+    scroll_if_visible(math.min(r.row + r.len, vim.api.nvim_buf_line_count(buf)))
     persist(buf)
   end
   return r
@@ -337,11 +346,12 @@ function M.bootstrap()
   end
   local id = uuid()
   vim.notify('pr_companion: bootstrapping for PR #' .. current.number .. ' (this takes a minute)…', vim.log.levels.INFO)
+  open_pane() -- show it once at the start; hiding it afterwards keeps streaming in the background
   local row = append { '## Summary', '', '_bootstrapping…_' }
   local r = region(row + 2, 1)
   stream_into(r, 'bootstrapping…', { '--session-id', id }, bootstrap_prompt(), function(result, err)
     if not result then
-      local buf = open_pane()
+      local buf = pane_buf()
       vim.api.nvim_buf_set_lines(buf, row, r.row + r.len, false, {})
       persist(buf)
       return vim.notify('pr_companion: bootstrap failed\n' .. err, vim.log.levels.ERROR)
@@ -395,6 +405,7 @@ function M.ask(opts)
       table.insert(entry, '')
     end
     table.insert(entry, '_thinking…_')
+    open_pane() -- surface the pane when a question is asked; closing it afterwards keeps streaming in the background
     local r = region(append(entry) + #entry - 1, 1)
     local message = code and table.concat(code, '\n') .. '\n\nQuestion: ' .. q or q
     stream_into(r, 'thinking…', { '--resume', s.session_id }, message, function(result, err)
