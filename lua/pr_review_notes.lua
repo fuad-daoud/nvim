@@ -183,7 +183,7 @@ end
 
 function M.delete_note()
   if not current then
-    return
+    return vim.notify('pr_review_notes: open a PR with :PrReview first', vim.log.levels.INFO)
   end
   local buf = vim.api.nvim_get_current_buf()
   local path, side = M._parse_diff_name(vim.api.nvim_buf_get_name(buf), head_rev())
@@ -249,6 +249,9 @@ function M.redraw_all()
 end
 
 function M.discard()
+  if not current then
+    return
+  end
   review = { verdict = 'COMMENT', summary = '', notes = {} }
   os.remove(review_file())
   M.redraw_all()
