@@ -46,7 +46,7 @@ Pinned versions as variables, one line each to bump:
 
 ```
 NVIM_VERSION=0.12.5   GO_VERSION=1.27.0   ZIG_VERSION=0.16.0   ZLS_VERSION=0.16.0
-LUA_LS_VERSION=...    STYLUA_VERSION=2.5.2   LAZYGIT_VERSION=...   NODE_MAJOR=22
+LUA_LS_VERSION=3.19.1 STYLUA_VERSION=2.5.2 LAZYGIT_VERSION=0.65.1 NODE_MAJOR=22
 ```
 
 Required binaries (used by the check, and the reason each exists):
