@@ -55,12 +55,17 @@ detect_arch() {
 # install_release <name> <url> <strip-components> <bin-relpath>...
 # Download an archive, verify it, unpack into /opt/<name> (replacing any previous
 # install) and symlink each listed binary into /usr/local/bin. A failed download
-# or corrupt archive dies before /opt is touched.
+# or corrupt archive dies before /opt is touched. Zip archives require
+# strip-components=0.
 install_release() {
   local name=$1 url=$2 strip=$3
   shift 3
+  case "$url" in
+    *.zip) [ "$strip" = 0 ] || die "install_release: strip-components is only supported for tar archives ($url)" ;;
+  esac
   local tmp
   tmp=$(mktemp -d)
+  trap 'rm -rf "$tmp"' RETURN
   log "installing $name from $url"
   curl -fsSL -o "$tmp/archive" "$url"
   mkdir "$tmp/root"
@@ -87,5 +92,4 @@ install_release() {
     sudo chmod +x "/opt/$name/$rel"
     sudo ln -sfn "/opt/$name/$rel" "/usr/local/bin/$(basename "$rel")"
   done
-  rm -rf "$tmp"
 }
