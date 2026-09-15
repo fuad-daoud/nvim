@@ -30,6 +30,11 @@ bin_version() {
 # have_version <bin> <min> -> true when <bin> is on PATH at version >= <min>
 have_version() { have "$1" && version_ge "$(bin_version "$1")" "$2"; }
 
+# All scratch files live under one dir removed when the script exits for any
+# reason (normal end, die, set -e abort), so no failure path leaks temp files.
+INSTALL_TMP=$(mktemp -d)
+trap 'rm -rf "$INSTALL_TMP"' EXIT
+
 # detect_distro -> prints arch|ubuntu, dies otherwise. OS_RELEASE overrides the file (tests).
 detect_distro() {
   local f="${OS_RELEASE:-/etc/os-release}" id like
@@ -54,9 +59,10 @@ detect_arch() {
 
 # install_release <name> <url> <strip-components> <bin-relpath>...
 # Download an archive, verify it, unpack into /opt/<name> (replacing any previous
-# install) and symlink each listed binary into /usr/local/bin. A failed download
-# or corrupt archive dies before /opt is touched. Zip archives require
-# strip-components=0.
+# install) and symlink each listed binary into /usr/local/bin. Allocates a per-call
+# temp dir under INSTALL_TMP (cleaned on script exit); removes it on success.
+# A failed download or corrupt archive dies before /opt is touched. Zip archives
+# require strip-components=0.
 install_release() {
   local name=$1 url=$2 strip=$3
   shift 3
@@ -64,8 +70,7 @@ install_release() {
     *.zip) [ "$strip" = 0 ] || die "install_release: strip-components is only supported for tar archives ($url)" ;;
   esac
   local tmp
-  tmp=$(mktemp -d)
-  trap 'rm -rf "$tmp"' RETURN
+  tmp=$(mktemp -d -p "$INSTALL_TMP")
   log "installing $name from $url"
   curl -fsSL -o "$tmp/archive" "$url"
   mkdir "$tmp/root"
@@ -92,4 +97,5 @@ install_release() {
     sudo chmod +x "/opt/$name/$rel"
     sudo ln -sfn "/opt/$name/$rel" "/usr/local/bin/$(basename "$rel")"
   done
+  rm -rf "$tmp"
 }
