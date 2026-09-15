@@ -64,7 +64,7 @@ Required binaries (used by the check, and the reason each exists):
 | `node` (≥ NODE_MAJOR), `npm` | npm tools, `mmdc` |
 | `yaml-language-server`, `bash-language-server`, `tailwindcss-language-server` | LSPs |
 | `prettier`, `prettierd`, `shfmt`, `shellcheck`, `yamllint`, `actionlint`, `jq` | conform / nvim-lint |
-| `luarocks`, `magick` rock at `~/.luarocks/lib/lua/5.1/magick`, `convert` (imagemagick), `mmdc` | image.nvim + mermaid |
+| `luarocks`, `magick` rock at `~/.luarocks/share/lua/5.1/magick`, `mmdc` | image.nvim + mermaid |
 
 ## Arch base layer (`install/arch.sh`)
 
