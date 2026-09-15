@@ -3,16 +3,16 @@
 
 NVIM_VERSION=0.12.5
 GO_VERSION=1.27.0
-ZIG_VERSION=0.16.0
-ZLS_VERSION=0.16.0 # must match ZIG_VERSION's minor
-LUA_LS_VERSION=3.19.1
-STYLUA_VERSION=2.5.2
-LAZYGIT_VERSION=0.65.1
+export ZIG_VERSION=0.16.0
+export ZLS_VERSION=0.16.0 # must match ZIG_VERSION's minor
+export LUA_LS_VERSION=3.19.1
+export STYLUA_VERSION=2.5.2
+export LAZYGIT_VERSION=0.65.1
 NODE_MAJOR=22
 
 # Everything that must be on PATH for the config to work. Checked by
 # `install.sh --check`; see the spec for which plugin needs each one.
-REQUIRED_BINS=(
+declare -ax REQUIRED_BINS=(
   # core / lazy.nvim / native builds
   nvim git unzip curl make cc
   # pickers, git tooling
@@ -30,10 +30,10 @@ REQUIRED_BINS=(
 )
 
 # Binaries that also have a minimum version (checked with bin_version).
-declare -A MIN_VERSION=(
+declare -Ax MIN_VERSION=(
   [nvim]="$NVIM_VERSION"
   [go]="$GO_VERSION"
   [node]="$NODE_MAJOR.0.0"
 )
 
-MAGICK_ROCK="$HOME/.luarocks/share/lua/5.1/magick"
+export MAGICK_ROCK="$HOME/.luarocks/share/lua/5.1/magick"
