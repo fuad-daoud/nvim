@@ -227,7 +227,7 @@ Default mode is a large floating terminal (`<C-\>`). The `<leader>tf` keymap ope
 | `<leader>tf` | Toggle large floating terminal |
 | `<A-h/j/k/l>` | Navigate to adjacent window (normal + terminal mode) |
 
-`after/ftplugin/python.lua` adds a buffer-local `<leader>rp` that saves and runs the current file with `python3` in the floating terminal (`TermExec`).
+`after/ftplugin/python.lua` adds a buffer-local `<leader>rp` that saves and runs the current file with `python3` in a 25%-wide vertical toggleterm split (dedicated terminal id 9, via the Lua `exec` API — `:TermExec` mangles quoted paths).
 
 ---
 
