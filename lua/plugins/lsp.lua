@@ -89,7 +89,22 @@ return {
         },
       })
 
-      vim.lsp.enable { 'lua_ls', 'gopls', 'zls', 'tailwindcss', 'html', 'cssls', 'jsonls', 'yamlls', 'bashls' }
+      -- Python: pyright for types/navigation, ruff for lint diagnostics + fix/organize-imports code actions.
+      -- Each side disables what the other does better so they don't double-report.
+      vim.lsp.config('pyright', {
+        settings = {
+          pyright = { disableOrganizeImports = true },
+          python = { analysis = { typeCheckingMode = 'basic' } },
+        },
+      })
+
+      vim.lsp.config('ruff', {
+        on_attach = function(client)
+          client.server_capabilities.hoverProvider = false
+        end,
+      })
+
+      vim.lsp.enable { 'lua_ls', 'gopls', 'zls', 'tailwindcss', 'html', 'cssls', 'jsonls', 'yamlls', 'bashls', 'pyright', 'ruff' }
 
       vim.diagnostic.config {
         virtual_text = {

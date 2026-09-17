@@ -18,6 +18,7 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
 1. Install system packages from `pacakges.sh`:
    - Core LSPs via pacman: `lua-language-server gopls clang yaml-language-server bash-language-server`
    - AUR LSPs: `zls tailwindcss-language-server`
+   - Python: `pyright ruff` via pacman (pyright + ruff LSPs; ruff is also the conform formatter)
    - Formatters: `prettier stylua shfmt shellcheck yamllint prettierd actionlint jq`
    - Go tools: `goimports`, `golines`, `gomodifytags`, `dlv`, `templ` via `go install`
    - Markdown/mermaid rendering: `imagemagick luarocks lua51` via pacman (`lua51` is required for `--lua-version 5.1`), then `luarocks --lua-version 5.1 install magick --local` and `npm install -g --allow-scripts=puppeteer @mermaid-js/mermaid-cli` (the `--allow-scripts` flag is needed or puppeteer skips its Chromium download and `mmdc` fails at runtime)
@@ -45,6 +46,7 @@ See `lua/scripts/CLAUDE.md` for details on each script.
 Plugins live in two places:
 - **Inline in `lua/scripts/lazy.lua`**: colorscheme (rose-pine), conform, hardtime, colorizer, todo-comments, lazydev, notify, baleia, clock
 - **`lua/plugins/*.lua`**: one spec per file, all auto-imported via `{ import = 'plugins' }`
+- **`after/ftplugin/*.lua`**: buffer-local filetype extras (currently `python.lua` → `<leader>rp` run-file keymap)
 
 See `lua/plugins/CLAUDE.md` for details on each plugin file.
 

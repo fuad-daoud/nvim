@@ -4,6 +4,9 @@ sudo pacman -S lua-language-server gopls clang yaml-language-server bash-languag
 # AUR LSPs
 yay -S zls tailwindcss-language-server
 
+# Python (LSP + formatter/linter for leetcode.nvim and plain .py files)
+sudo pacman -S pyright ruff
+
 # Formatters/Linters
 sudo pacman -S prettier stylua shfmt shellcheck yamllint
 yay -S prettierd actionlint jq

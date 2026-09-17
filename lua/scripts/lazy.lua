@@ -81,7 +81,7 @@ require('lazy').setup({
         javascript = { 'prettierd', 'prettier' },
         javascriptreact = { 'prettierd', 'prettier' },
         json = { 'prettierd', 'prettier' },
-        python = { 'isort', 'black' },
+        python = { 'ruff_organize_imports', 'ruff_format' },
         sql = { 'sql-formatter' },
         svelte = { 'prettierd', 'prettier' },
         typescript = { 'prettierd', 'prettier', 'sql-formatter' },
