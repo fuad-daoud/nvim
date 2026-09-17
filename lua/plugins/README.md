@@ -308,7 +308,7 @@ Visual in-editor rendering using treesitter + extmarks/virtual lines: styled hea
 
 Diagrams re-render on every `BufWritePost`. Images are cleared on `BufWipeout`.
 
-**Dependencies:** `imagemagick` (system, provides `libMagickWand`), `magick` LuaRock (Lua 5.1, installed via `luarocks --lua-version 5.1 install magick --local`), `mmdc` (`npm install -g --allow-scripts=puppeteer @mermaid-js/mermaid-cli`). All three are installed by `./install.sh`.
+**Dependencies:** `imagemagick` (system, provides `libMagickWand`), `magick` LuaRock (Lua 5.1, installed via `luarocks --lua-version 5.1 install magick --local`), `mmdc` (`npm install -g @mermaid-js/mermaid-cli`, plus puppeteer's headless browser in `~/.cache/puppeteer`, which `./install.sh` downloads as the user when a probe render fails). All three are installed by `./install.sh`.
 
 ---
 

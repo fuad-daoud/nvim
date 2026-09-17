@@ -10,13 +10,43 @@ case "$ARCH" in
   aarch64) GOARCH=arm64 NVIM_ARCH=arm64 LUALS_ARCH=arm64 LAZYGIT_ARCH=arm64 ;;
 esac
 
+# apt_name <var> <candidate>... -> sets <var> to the first name apt can install.
+# Ubuntu 24.04 renamed several libraries with a t64 suffix and dropped the old
+# names, so the headless-chrome deps below are looked up per release. Sets a
+# variable rather than printing so that die() aborts the script (it would only
+# leave a command substitution). Captures apt-cache output instead of piping into
+# grep -q: under pipefail an early grep exit would fail the pipeline.
+apt_name() {
+  local var=$1 n out
+  shift
+  for n in "$@"; do
+    out=$(apt-cache policy "$n" 2>/dev/null)
+    case "$out" in
+      *'Candidate: '[0-9]*)
+        printf -v "$var" '%s' "$n"
+        return
+        ;;
+    esac
+  done
+  die "apt: none of these packages is available: $*"
+}
+
 log 'ubuntu: apt packages'
 sudo apt-get update -qq
+apt_name ASOUND libasound2t64 libasound2
+apt_name ATK libatk1.0-0t64 libatk1.0-0
+apt_name ATK_BRIDGE libatk-bridge2.0-0t64 libatk-bridge2.0-0
+apt_name CUPS libcups2t64 libcups2
+# The last three lines are the runtime deps of puppeteer's headless chrome, which
+# mmdc uses to render diagrams (see ensure_mmdc_browser in shared.sh).
 sudo apt-get install -y -qq \
   git curl unzip build-essential ca-certificates gnupg \
   ripgrep fd-find fzf jq shellcheck yamllint \
   clangd imagemagick libmagickwand-dev \
-  luarocks lua5.1 liblua5.1-dev
+  luarocks lua5.1 liblua5.1-dev \
+  fonts-liberation libnss3 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
+  libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 \
+  "$ASOUND" "$ATK" "$ATK_BRIDGE" "$CUPS"
 # Ubuntu ships fd as fdfind
 have fd || sudo ln -sfn "$(command -v fdfind)" /usr/local/bin/fd
 

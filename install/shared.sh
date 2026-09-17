@@ -32,18 +32,30 @@ go_tool shfmt mvdan.cc/sh/v3/cmd/shfmt
 go_tool actionlint github.com/rhysd/actionlint/cmd/actionlint
 
 log 'shared: npm packages'
-npm_tool() { # npm_tool <binary> <package> [extra npm flags...]
-  local bin=$1 pkg=$2
-  shift 2
-  have "$bin" || sudo npm install -g "$@" "$pkg"
+npm_tool() { # npm_tool <binary> <package>
+  have "$1" || sudo npm install -g "$2"
 }
 npm_tool prettier prettier
 npm_tool prettierd @fsouza/prettierd
 npm_tool yaml-language-server yaml-language-server
 npm_tool bash-language-server bash-language-server
 npm_tool tailwindcss-language-server @tailwindcss/language-server
-# --allow-scripts is required or puppeteer skips its Chromium download and mmdc fails at runtime
-npm_tool mmdc @mermaid-js/mermaid-cli --allow-scripts=puppeteer
+npm_tool mmdc @mermaid-js/mermaid-cli
+
+# mmdc renders through puppeteer, which keeps its browser in $HOME/.cache/puppeteer,
+# so the download must run as the user, not under sudo (a root-owned copy under
+# /root is invisible to the user, and `have mmdc` cannot tell). Probe with a real
+# render; install the browser only if it fails.
+ensure_mmdc_browser() {
+  local probe="$INSTALL_TMP/probe" pkg
+  printf 'graph TD; a-->b\n' >"$probe.mmd"
+  mmdc -i "$probe.mmd" -o "$probe.png" >/dev/null 2>&1 && return
+  log 'shared: puppeteer browser for mmdc'
+  pkg=$(dirname "$(dirname "$(readlink -f "$(command -v mmdc)")")") # …/@mermaid-js/mermaid-cli
+  node "$pkg/node_modules/puppeteer/install.mjs"
+  mmdc -i "$probe.mmd" -o "$probe.png" >/dev/null 2>&1 || die 'mmdc still cannot render after installing the puppeteer browser'
+}
+ensure_mmdc_browser
 
 log 'shared: magick luarock'
 [ -d "$MAGICK_ROCK" ] || luarocks --lua-version 5.1 install magick --local
