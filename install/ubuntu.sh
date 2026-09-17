@@ -66,6 +66,20 @@ if ! have_version lua-language-server "$LUA_LS_VERSION"; then
   install_release lua-language-server \
     "https://github.com/LuaLS/lua-language-server/releases/download/${LUA_LS_VERSION}/lua-language-server-${LUA_LS_VERSION}-linux-${LUALS_ARCH}.tar.gz" \
     0 bin/lua-language-server
+  # LuaLS defaults --metapath/--logpath to <root>/meta and <root>/log; a user can't
+  # create those under root-owned /opt, and LuaLS then silently skips loading its
+  # builtin (stdlib) definitions. Replace the symlink with a wrapper that points
+  # both at the user's cache, like Arch's /usr/bin/lua-language-server does.
+  # rm first: tee on the symlink would overwrite the real binary in /opt.
+  sudo rm -f /usr/local/bin/lua-language-server
+  sudo tee /usr/local/bin/lua-language-server >/dev/null <<'EOF'
+#!/usr/bin/env sh
+# LuaLS writes meta/log next to its binary by default; /opt is root-owned, so point them at the user's cache.
+cache="${XDG_CACHE_HOME:-$HOME/.cache}/lua-language-server"
+mkdir -p "$cache/log" "$cache/meta"
+exec /opt/lua-language-server/bin/lua-language-server --logpath="$cache/log" --metapath="$cache/meta" "$@"
+EOF
+  sudo chmod +x /usr/local/bin/lua-language-server
 fi
 
 if ! have_version stylua "$STYLUA_VERSION"; then
