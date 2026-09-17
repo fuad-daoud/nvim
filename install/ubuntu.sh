@@ -62,12 +62,6 @@ if ! have_version zig "$ZIG_VERSION"; then
     1 zig
 fi
 
-if ! have_version zls "$ZLS_VERSION"; then
-  install_release zls \
-    "https://github.com/zigtools/zls/releases/download/${ZLS_VERSION}/zls-${ARCH}-linux.tar.xz" \
-    0 zls
-fi
-
 if ! have_version lua-language-server "$LUA_LS_VERSION"; then
   install_release lua-language-server \
     "https://github.com/LuaLS/lua-language-server/releases/download/${LUA_LS_VERSION}/lua-language-server-${LUA_LS_VERSION}-linux-${LUALS_ARCH}.tar.gz" \

@@ -2,6 +2,14 @@
 # Distro-agnostic layer: tools installed through go, npm and luarocks so that
 # Arch and Ubuntu get byte-identical versions. Runs after the base layer.
 
+# zls must match zig's minor and distro packages (the AUR in particular) lag
+# behind zig, so both distros take the matching GitHub release.
+if ! have_version zls "$ZLS_VERSION"; then
+  install_release zls \
+    "https://github.com/zigtools/zls/releases/download/${ZLS_VERSION}/zls-${ARCH}-linux.tar.xz" \
+    0 zls
+fi
+
 log 'shared: go tools'
 GOBIN=$(go env GOBIN)
 [ -n "$GOBIN" ] || GOBIN=$(go env GOPATH)/bin

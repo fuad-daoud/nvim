@@ -1,6 +1,6 @@
 # shellcheck shell=bash
-# Arch base layer: everything that comes from pacman/yay. Tools shared with
-# Ubuntu (go install / npm -g / luarocks) live in shared.sh.
+# Arch base layer: everything that comes from pacman. Tools shared with Ubuntu
+# (go install / npm -g / luarocks / zls release tarball) live in shared.sh.
 
 log 'arch: pacman packages'
 # nodejs is deliberately absent here: npm depends on a nodejs provider, so it
@@ -15,8 +15,9 @@ sudo pacman -S --needed --noconfirm \
   neovim go zig npm \
   stylua lua-language-server
 
-if ! have zls; then
-  have yay || die 'yay is required to install zls from the AUR'
-  log 'arch: aur packages'
-  yay -S --needed --noconfirm zls
+# zls must match zig's minor and the AUR package lags behind zig, so shared.sh
+# installs the matching GitHub release into /usr/local/bin, which precedes
+# /usr/bin on PATH and therefore shadows a leftover AUR build.
+if pacman -Q zls >/dev/null 2>&1; then
+  warn 'AUR zls is installed but lags zig; zls now comes from GitHub releases — remove it with: yay -Rns zls'
 fi

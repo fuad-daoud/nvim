@@ -34,6 +34,8 @@ declare -Ax MIN_VERSION=(
   [nvim]="$NVIM_VERSION"
   [go]="$GO_VERSION"
   [node]="$NODE_MAJOR.0.0"
+  [zig]="$ZIG_VERSION"
+  [zls]="$ZLS_VERSION"
 )
 
 export MAGICK_ROCK="$HOME/.luarocks/share/lua/5.1/magick"

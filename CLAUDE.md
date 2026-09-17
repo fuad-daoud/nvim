@@ -20,7 +20,7 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
 ./install.sh --check  # audit: ✓/✗ per required tool, exit 1 if anything is missing
 ```
 
-`install.sh` detects the distro and runs `install/arch.sh` (pacman/yay) or `install/ubuntu.sh` (apt + NodeSource + pinned release tarballs under `/opt`), then `install/shared.sh` (`go install`, `npm -g`, `luarocks`) so both distros get the same tools. Pinned versions and the required-binary list live in `install/manifest.sh`.
+`install.sh` detects the distro and runs `install/arch.sh` (pacman) or `install/ubuntu.sh` (apt + NodeSource + pinned release tarballs under `/opt`), then `install/shared.sh` (`go install`, `npm -g`, `luarocks`, and the `zls` GitHub release) so both distros get the same tools. Pinned versions and the required-binary list live in `install/manifest.sh`.
 
 Gotchas the script already handles, kept here for context:
 - `luarocks --lua-version 5.1 install magick --local` — the `magick` rock must be built for Lua 5.1 so LuaJIT can load it (`init.lua` adds `~/.luarocks` to `package.path`).
