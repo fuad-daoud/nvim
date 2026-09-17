@@ -6,22 +6,13 @@ A personal Neovim configuration built on a [kickstart.nvim](https://github.com/n
 
 ## Prerequisites
 
-Install system packages before first launch:
+Run the installer on Arch or Ubuntu 22.04+:
 
 ```sh
-# Base tools
-sudo pacman -S git neovim npm unzip go zig
-
-# Run the packages script for LSPs and formatters
-bash pacakges.sh
+./install.sh
 ```
 
-`pacakges.sh` installs:
-- **LSPs (pacman):** `lua-language-server`, `gopls`, `clang`, `yaml-language-server`, `bash-language-server`
-- **LSPs (AUR):** `zls`, `tailwindcss-language-server`, `jdtls`, `kotlin-language-server`
-- **Formatters:** `prettier`, `stylua`, `shfmt`, `shellcheck`, `yamllint`, `prettierd`, `actionlint`, `jq`, `google-java-format`, `ktlint`
-- **Go tools:** `goimports`, `golines`, `gomodifytags`, `dlv`, `templ`
-- **Markdown/mermaid:** `imagemagick`, `luarocks` (pacman), `magick` LuaRock (luarocks, Lua 5.1), `mmdc` (npm)
+This detects your distro and installs all required system packages: LSPs, formatters, Go tools, npm/Node, Lua tooling, and markdown/mermaid rendering dependencies. For details, see the root `CLAUDE.md`.
 
 On first launch, lazy.nvim bootstraps itself and installs all plugins automatically.
 
@@ -41,7 +32,7 @@ lua/
   plugins/
     *.lua                 ← one plugin spec per file
   utils.lua               ← shared helpers (OSC 7, etc.)
-pacakges.sh               ← system package installer
+install.sh                ← cross-distro installer
 .stylua.toml              ← Lua formatter config
 ```
 

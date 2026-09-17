@@ -8,7 +8,7 @@ All files in this directory return a lazy.nvim plugin spec and are auto-imported
 
 **Plugin:** `neovim/nvim-lspconfig` + `j-hui/fidget.nvim`
 
-LSP servers are installed manually via system packages — **Mason is not used**. Capabilities are sourced from blink.cmp so completion and LSP share the same capability set.
+LSP servers are installed by `./install.sh` (see the root `CLAUDE.md`) — **Mason is not used**. Capabilities are sourced from blink.cmp so completion and LSP share the same capability set.
 
 ### Configured Servers
 
@@ -308,7 +308,7 @@ Visual in-editor rendering using treesitter + extmarks/virtual lines: styled hea
 
 Diagrams re-render on every `BufWritePost`. Images are cleared on `BufWipeout`.
 
-**Dependencies:** `imagemagick` (system, provides `libMagickWand`), `magick` LuaRock (Lua 5.1, installed via `luarocks --lua-version 5.1 install magick --local`), `mmdc` (`npm install -g @mermaid-js/mermaid-cli`).
+**Dependencies:** `imagemagick` (system, provides `libMagickWand`), `magick` LuaRock (Lua 5.1, installed via `luarocks --lua-version 5.1 install magick --local`), `mmdc` (`npm install -g --allow-scripts=puppeteer @mermaid-js/mermaid-cli`). All three are installed by `./install.sh`.
 
 ---
 

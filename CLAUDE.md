@@ -15,16 +15,19 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
 
 ## Fresh Machine Setup
 
-1. Install system packages from `pacakges.sh`:
-   - Core LSPs via pacman: `lua-language-server gopls clang yaml-language-server bash-language-server`
-   - AUR LSPs: `zls tailwindcss-language-server`
-   - Formatters: `prettier stylua shfmt shellcheck yamllint prettierd actionlint jq`
-   - Go tools: `goimports`, `golines`, `gomodifytags`, `dlv`, `templ` via `go install`
-   - Markdown/mermaid rendering: `imagemagick luarocks lua51` via pacman (`lua51` is required for `--lua-version 5.1`), then `luarocks --lua-version 5.1 install magick --local` and `npm install -g --allow-scripts=puppeteer @mermaid-js/mermaid-cli` (the `--allow-scripts` flag is needed or puppeteer skips its Chromium download and `mmdc` fails at runtime)
+```sh
+./install.sh          # Arch or Ubuntu 22.04+; idempotent, safe to re-run
+./install.sh --check  # audit: ✓/✗ per required tool, exit 1 if anything is missing
+```
 
-2. Base system prereqs (from `init.lua` comment): `pacman -S git neovim npm unzip go zig`
+`install.sh` detects the distro and runs `install/arch.sh` (pacman/yay) or `install/ubuntu.sh` (apt + NodeSource + pinned release tarballs under `/opt`), then `install/shared.sh` (`go install`, `npm -g`, `luarocks`) so both distros get the same tools. Pinned versions and the required-binary list live in `install/manifest.sh`.
 
-Lazy.nvim bootstraps itself on first launch. LSP servers are installed manually — **Mason is not used**.
+Gotchas the script already handles, kept here for context:
+- `luarocks --lua-version 5.1 install magick --local` — the `magick` rock must be built for Lua 5.1 so LuaJIT can load it (`init.lua` adds `~/.luarocks` to `package.path`).
+- `npm install -g --allow-scripts=puppeteer @mermaid-js/mermaid-cli` — without the flag puppeteer skips its Chromium download and `mmdc` fails at runtime.
+- On Ubuntu, `~/go/bin` is usually not on `PATH`; the script warns if so.
+
+Lazy.nvim bootstraps itself on first launch. LSP servers are installed by the script, not by Mason — **Mason is not used**.
 
 ## Architecture
 
