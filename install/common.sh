@@ -21,7 +21,8 @@ bin_version() {
     zig) zig version ;;
     zls) zls --version ;;
     stylua) stylua --version | awk '{print $2}' ;;
-    lazygit) lazygit --version | sed -E 's/.*version=([0-9.]+).*/\1/' ;;
+    # anchor on ", version=": the line also ends with "git version=X.Y.Z"
+    lazygit) lazygit --version | sed -E 's/.*, version=([0-9.]+).*/\1/' ;;
     lua-language-server) lua-language-server --version | sed -E 's/^[^0-9]*([0-9.]+).*/\1/' ;;
     *) die "bin_version: no version parser for '$1'" ;;
   esac
