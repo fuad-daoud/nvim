@@ -40,17 +40,30 @@ check() {
 }
 
 main() {
-  if [ "${1:-}" = --check ]; then
-    check
-    return
-  fi
-  [ $# -eq 0 ] || die "usage: $0 [--check]"
+  case "$#:${1:-}" in
+    0:) ;;
+    1:--check)
+      check
+      return
+      ;;
+    *) die "usage: $0 [--check]" ;;
+  esac
 
   DISTRO=$(detect_distro)
   ARCH=$(detect_arch)
   export DISTRO ARCH
   log "distro=$DISTRO arch=$ARCH"
   sudo -v
+  # Keep the sudo timestamp fresh so long go/npm steps never re-prompt. The loop
+  # dies with this script; the EXIT trap in common.sh also kills it explicitly.
+  (
+    while true; do
+      sudo -n true
+      sleep 60
+      kill -0 "$$" || exit
+    done 2>/dev/null
+  ) &
+  SUDO_KEEPALIVE_PID=$!
 
   # shellcheck disable=SC1090
   . "$HERE/install/$DISTRO.sh"

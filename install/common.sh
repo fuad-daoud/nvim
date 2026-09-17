@@ -33,8 +33,14 @@ have_version() { have "$1" && version_ge "$(bin_version "$1")" "$2"; }
 
 # All scratch files live under one dir removed when the script exits for any
 # reason (normal end, die, set -e abort), so no failure path leaks temp files.
+# The same trap stops the sudo keepalive loop install.sh starts (if any).
 INSTALL_TMP=$(mktemp -d)
-trap 'rm -rf "$INSTALL_TMP"' EXIT
+SUDO_KEEPALIVE_PID=
+cleanup() {
+  [ -z "$SUDO_KEEPALIVE_PID" ] || kill "$SUDO_KEEPALIVE_PID" 2>/dev/null
+  rm -rf "$INSTALL_TMP"
+}
+trap cleanup EXIT
 
 # detect_distro -> prints arch|ubuntu, dies otherwise. OS_RELEASE overrides the file (tests).
 detect_distro() {

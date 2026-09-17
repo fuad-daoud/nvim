@@ -24,8 +24,10 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
 
 Gotchas the script already handles, kept here for context:
 - `luarocks --lua-version 5.1 install magick --local` — the `magick` rock must be built for Lua 5.1 so LuaJIT can load it (`init.lua` adds `~/.luarocks` to `package.path`).
-- `npm install -g --allow-scripts=puppeteer @mermaid-js/mermaid-cli` — without the flag puppeteer skips its Chromium download and `mmdc` fails at runtime.
-- On Ubuntu, `~/go/bin` is usually not on `PATH`; the script warns if so.
+- `mmdc` renders through puppeteer, whose browser lives in `~/.cache/puppeteer`. Installing mermaid-cli under `sudo npm -g` cannot provide it (a root-run postinstall lands the browser under `/root`), so the script probes with a real render and, if that fails, runs puppeteer's `install.mjs` as the user. On Ubuntu the apt layer also installs headless chrome's runtime libraries (`libnss3`, `libgbm1`, `libasound2[t64]`, …).
+- `zls` must match `zig`'s minor version and distro packages (the AUR one in particular) lag, so both distros install the matching GitHub release into `/usr/local/bin`; on Arch the script warns if an AUR `zls` is still installed (`yay -Rns zls`).
+- On Ubuntu, `lua-language-server` is a wrapper that points LuaLS's meta/log dirs at `~/.cache/lua-language-server`; the tarball's default is next to the root-owned binary under `/opt`, which silently disables the builtin stdlib definitions.
+- `go install` puts tools in `$GOBIN` (default `~/go/bin`), which is often not on `PATH`; the script warns if so.
 
 Lazy.nvim bootstraps itself on first launch. LSP servers are installed by the script, not by Mason — **Mason is not used**.
 

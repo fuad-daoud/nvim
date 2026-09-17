@@ -62,7 +62,7 @@ if ! have gh; then
   sudo apt-get install -y -qq gh
 fi
 
-if ! have_version node "$NODE_MAJOR.0.0"; then
+if ! have_version node "$NODE_MAJOR.0.0" || ! have npm; then
   log "ubuntu: node $NODE_MAJOR (NodeSource)"
   curl -fsSL "https://deb.nodesource.com/setup_${NODE_MAJOR}.x" | sudo -E bash -
   sudo apt-get install -y -qq nodejs

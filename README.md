@@ -33,6 +33,7 @@ lua/
     *.lua                 ← one plugin spec per file
   utils.lua               ← shared helpers (OSC 7, etc.)
 install.sh                ← cross-distro installer
+install/                  ← its layers: common.sh, manifest.sh (pins), arch.sh, ubuntu.sh, shared.sh
 .stylua.toml              ← Lua formatter config
 ```
 
