@@ -53,7 +53,11 @@ ensure_mmdc_browser() {
   log 'shared: puppeteer browser for mmdc'
   pkg=$(dirname "$(dirname "$(readlink -f "$(command -v mmdc)")")") # …/@mermaid-js/mermaid-cli
   node "$pkg/node_modules/puppeteer/install.mjs"
-  mmdc -i "$probe.mmd" -o "$probe.png" >/dev/null 2>&1 || die 'mmdc still cannot render after installing the puppeteer browser'
+  # keep the second probe's stderr: it names the real cause (missing libs, sandbox/AppArmor, …)
+  if ! mmdc -i "$probe.mmd" -o "$probe.png" >/dev/null 2>"$probe.err"; then
+    cat "$probe.err" >&2
+    die 'mmdc still cannot render after installing the puppeteer browser'
+  fi
 }
 ensure_mmdc_browser
 

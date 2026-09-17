@@ -37,7 +37,8 @@ have_version() { have "$1" && version_ge "$(bin_version "$1")" "$2"; }
 INSTALL_TMP=$(mktemp -d)
 SUDO_KEEPALIVE_PID=
 cleanup() {
-  [ -z "$SUDO_KEEPALIVE_PID" ] || kill "$SUDO_KEEPALIVE_PID" 2>/dev/null
+  # set -e is active in the trap: a dead keepalive must not abort the tmp cleanup
+  [ -z "$SUDO_KEEPALIVE_PID" ] || kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true
   rm -rf "$INSTALL_TMP"
 }
 trap cleanup EXIT
