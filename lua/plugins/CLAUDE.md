@@ -108,7 +108,7 @@ Floating terminal via `<C-\>`. Additional keymaps:
 | `<leader>tv` | Vertical terminal |
 | `<leader>tf` | Large floating terminal |
 | `<A-hjkl>` | Window navigation from terminal or normal mode |
-| `<leader>rp` | (Python buffers only, `after/ftplugin/python.lua`) save + run current file in a 25% vertical split, terminal id 9 |
+| `<leader>rp` | (Python buffers only, `after/ftplugin/python.lua` → `lua/pyrun.lua`) save + run `python3 <file> < input.txt > output.txt 2>&1`, showing both files in a 25% right column; not a toggleterm |
 
 ## leetcode.lua
 

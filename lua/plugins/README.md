@@ -227,7 +227,7 @@ Default mode is a large floating terminal (`<C-\>`). The `<leader>tf` keymap ope
 | `<leader>tf` | Toggle large floating terminal |
 | `<A-h/j/k/l>` | Navigate to adjacent window (normal + terminal mode) |
 
-`after/ftplugin/python.lua` adds a buffer-local `<leader>rp` that saves and runs the current file with `python3` in a 25%-wide vertical toggleterm split (dedicated terminal id 9, via the Lua `exec` API — `:TermExec` mangles quoted paths).
+`after/ftplugin/python.lua` binds a buffer-local `<leader>rp` to `require('pyrun').run()` (`lua/pyrun.lua`): saves the file, opens a 25%-wide right column with `input.txt` (top) and `output.txt` (bottom) from the same directory, then runs `python3 <file> < input.txt > output.txt 2>&1` via `vim.system` and reloads the output pane. No terminal window; the cursor stays in the `.py`. Non-zero exit → `vim.notify` warning. Panes are reused on re-run; `input.txt` is saved first if modified.
 
 ---
 
