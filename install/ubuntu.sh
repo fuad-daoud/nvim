@@ -46,7 +46,7 @@ fi
 
 if ! have_version go "$GO_VERSION"; then
   log "installing go $GO_VERSION to /usr/local/go"
-  tmp=$(mktemp -d)
+  tmp=$(mktemp -d -p "$INSTALL_TMP")
   curl -fsSL -o "$tmp/go.tgz" "https://go.dev/dl/go${GO_VERSION}.linux-${GOARCH}.tar.gz"
   tar -tzf "$tmp/go.tgz" >/dev/null
   sudo rm -rf /usr/local/go
