@@ -3,7 +3,8 @@
 # Arch and Ubuntu get byte-identical versions. Runs after the base layer.
 
 log 'shared: go tools'
-GOBIN=$(go env GOPATH)/bin
+GOBIN=$(go env GOBIN)
+[ -n "$GOBIN" ] || GOBIN=$(go env GOPATH)/bin
 # Remember whether the user's own PATH has GOBIN before we prepend it for this run.
 case ":$PATH:" in
   *":$GOBIN:"*) GOBIN_ON_PATH=1 ;;
