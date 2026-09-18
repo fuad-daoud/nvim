@@ -162,7 +162,6 @@ All set on `VeryLazy` event:
 | `\i` | Indent guides |
 | `\z` | Zen mode |
 | `\o` | Word highlighting |
-| `\p` | Auto-pairs (mini.pairs) |
 | `\T` | Trailing whitespace removal |
 
 ### Project Picker
@@ -209,7 +208,7 @@ Layout: 90% width/height, prompt at bottom, preview cuts off at 180 cols.
 
 Pre-installed parsers: `bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `vim`, `vimdoc`, `go`, `rust`, `zig`, `dockerfile`, `python`, `java`, `kotlin`, `javascript`, `typescript`, `tsx`, `css`, `json`.
 
-`windwp/nvim-ts-autotag` lives in the same file: auto-closes and auto-renames JSX/HTML tags (`mini.pairs` only handles brackets and quotes). Loads on `html`, `javascriptreact`, `typescriptreact`, `templ`, `markdown`.
+`windwp/nvim-ts-autotag` lives in the same file: auto-closes and auto-renames JSX/HTML tags. Loads on `html`, `javascriptreact`, `typescriptreact`, `templ`, `markdown`.
 
 Includes a custom **templ** parser (`virschmann/tree-sitter-templ`) for Go templating with the `a-h/templ` tool. Markdown uses additional vim regex highlighting for correct indent behaviour.
 
@@ -349,11 +348,9 @@ Diagrams re-render on every `BufWritePost`. Images are cleared on `BufWipeout`.
 
 ---
 
-## Auto-pairs & Surround — `mini.lua`
+## Surround — `mini.lua`
 
-**Plugins:** `echasnovski/mini.pairs` + `echasnovski/mini.surround`
-
-**mini.pairs** auto-closes brackets, quotes, and braces. Toggle with `\p` (reads `vim.b.minipairs_disable`).
+**Plugin:** `echasnovski/mini.surround`
 
 **mini.surround** adds surround text-object operations:
 

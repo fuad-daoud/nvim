@@ -66,7 +66,7 @@ return {
       vim.treesitter.language.register('templ', 'templ')
     end,
   },
-  { -- auto-close and auto-rename JSX/HTML tags (mini.pairs only does brackets/quotes)
+  { -- auto-close and auto-rename JSX/HTML tags
     'windwp/nvim-ts-autotag',
     ft = { 'html', 'javascriptreact', 'typescriptreact', 'templ', 'markdown' },
     opts = {},

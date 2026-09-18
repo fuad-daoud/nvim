@@ -137,15 +137,6 @@ return {
         Snacks.toggle.zen():map '\\z'
         Snacks.toggle.words():map '\\o'
         Snacks.toggle({
-          name = 'AutoPairs',
-          get = function()
-            return not vim.b.minipairs_disable
-          end,
-          set = function(enabled)
-            vim.b.minipairs_disable = not enabled
-          end,
-        }):map '\\p'
-        Snacks.toggle({
           name = 'Trails Removal',
           get = function()
             return vim.b.remove_trails_enabled ~= false

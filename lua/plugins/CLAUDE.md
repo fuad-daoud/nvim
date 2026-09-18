@@ -68,7 +68,7 @@ Central hub for many UX features via `folke/snacks.nvim`.
 
 **Toggle keymaps** (`\<key>` — set on `VeryLazy`):
 
-`\s` spell · `\w` wrap · `\c` cursorline · `\l` list chars · `\g` ignorecase · `\r` relative numbers · `\d` diagnostics · `\n` line numbers · `\-` conceallevel · `\/` treesitter · `\b` background · `\h` inlay hints · `\i` indent guides · `\z` zen · `\o` word highlighting · `\p` autopairs · `\T` trailing whitespace removal
+`\s` spell · `\w` wrap · `\c` cursorline · `\l` list chars · `\g` ignorecase · `\r` relative numbers · `\d` diagnostics · `\n` line numbers · `\-` conceallevel · `\/` treesitter · `\b` background · `\h` inlay hints · `\i` indent guides · `\z` zen · `\o` word highlighting · `\T` trailing whitespace removal
 
 **Project picker**: selecting a project calls `vim.cmd('cd ...')` and emits an OSC 7 escape sequence so the terminal follows the directory change.
 
@@ -197,8 +197,7 @@ Mermaid diagram rendering is implemented in the `config` function of `image.nvim
 
 ## mini.lua
 
-Two mini.echasnovski plugins:
-- **`mini.pairs`** — auto-closes brackets, quotes, etc. Toggle with `\p` (snacks toggle reads `vim.b.minipairs_disable`).
+mini.echasnovski plugins:
 - **`mini.surround`** — add/delete/replace surrounds. Default mappings: `sa` add · `sd` delete · `sr` replace.
 
 ## lualine.lua
