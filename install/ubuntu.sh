@@ -43,7 +43,7 @@ sudo apt-get install -y -qq \
   git curl unzip build-essential ca-certificates gnupg \
   ripgrep fd-find fzf jq shellcheck yamllint \
   clangd imagemagick libmagickwand-dev \
-  luarocks lua5.1 liblua5.1-dev \
+  luarocks lua5.1 liblua5.1-dev python3 \
   fonts-liberation libnss3 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 \
   libxfixes3 libxrandr2 libgbm1 libpango-1.0-0 libcairo2 \
   "$ASOUND" "$ATK" "$ATK_BRIDGE" "$CUPS"

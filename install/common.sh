@@ -20,6 +20,7 @@ bin_version() {
     node) node --version | sed 's/^v//' ;;
     zig) zig version ;;
     zls) zls --version ;;
+    ruff) ruff --version | awk '{print $2}' ;;
     stylua) stylua --version | awk '{print $2}' ;;
     # anchor on ", version=": the line also ends with "git version=X.Y.Z"
     lazygit) lazygit --version | sed -E 's/.*, version=([0-9.]+).*/\1/' ;;

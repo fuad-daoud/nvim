@@ -12,7 +12,7 @@ sudo pacman -S --needed --noconfirm \
   ripgrep fd fzf jq shellcheck yamllint \
   clang imagemagick luarocks lua51 \
   github-cli lazygit \
-  neovim go zig npm \
+  neovim go zig npm python \
   stylua lua-language-server
 
 # zls must match zig's minor and the AUR package lags behind zig, so shared.sh

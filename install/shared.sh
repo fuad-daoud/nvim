@@ -10,6 +10,13 @@ if ! have_version zls "$ZLS_VERSION"; then
     0 zls
 fi
 
+# ruff: distro packages are missing (22.04) or stale, so take the GitHub release.
+if ! have_version ruff "$RUFF_VERSION"; then
+  install_release ruff \
+    "https://github.com/astral-sh/ruff/releases/download/${RUFF_VERSION}/ruff-${ARCH}-unknown-linux-gnu.tar.gz" \
+    1 ruff
+fi
+
 log 'shared: go tools'
 GOBIN=$(go env GOBIN)
 [ -n "$GOBIN" ] || GOBIN=$(go env GOPATH)/bin
@@ -41,6 +48,8 @@ npm_tool yaml-language-server yaml-language-server
 npm_tool bash-language-server bash-language-server
 npm_tool tailwindcss-language-server @tailwindcss/language-server
 npm_tool mmdc @mermaid-js/mermaid-cli
+# pyright ships pyright-langserver, which is what nvim-lspconfig starts
+npm_tool pyright-langserver pyright
 
 # mmdc renders through puppeteer, which keeps its browser in $HOME/.cache/puppeteer,
 # so the download must run as the user, not under sudo (a root-owned copy under

@@ -8,6 +8,7 @@ export ZLS_VERSION=0.16.0 # must match ZIG_VERSION's minor
 export LUA_LS_VERSION=3.19.1
 export STYLUA_VERSION=2.5.2
 export LAZYGIT_VERSION=0.65.1
+export RUFF_VERSION=0.16.8
 NODE_MAJOR=22
 
 # Everything that must be on PATH for the config to work. Checked by
@@ -23,6 +24,8 @@ declare -ax REQUIRED_BINS=(
   zig zls lua-language-server stylua clangd
   # node + npm-installed LSPs and formatters
   node npm yaml-language-server bash-language-server tailwindcss-language-server prettier prettierd
+  # python
+  python3 pyright-langserver ruff
   # linters / formatters
   shfmt shellcheck yamllint actionlint jq
   # markdown rendering
