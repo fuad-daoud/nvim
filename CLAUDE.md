@@ -66,7 +66,9 @@ See `lua/plugins/CLAUDE.md` for details on each plugin file.
 
 `lua/pr_review.lua` — PR review on top of diffview: `:PrReview` open flow and GitHub-synced "viewed" marks (see `lua/plugins/CLAUDE.md` → diffview.lua).
 
-`lua/pr_companion.lua` — per-PR headless Claude Code review companion (`:PrCompanion`, `:PrAsk`, `:PrChat`); sessions and pane transcripts under `stdpath('data')/pr_review/`.
+`lua/companion.lua` — shared engine for the AI companions: `new(spec)` returns an instance with the headless `claude -p` runner (stream-json, 10 min timeout), the streaming markdown pane (`request`, `region`, rebuild-from-mirror), and a `sessions.json` store keyed by `current.key` under `stdpath('data')/<spec.name>/`.
+
+`lua/pr_companion.lua` — per-PR review companion on top of `companion.lua` (`:PrCompanion`, `:PrAsk`, `:PrChat`): read-only git/gh tool lists, prompts, diffview-aware snippets; data under `stdpath('data')/pr_review/`.
 
 `lua/pyrun.lua` — `<leader>rp` two-pane Python runner: `input.txt` → stdin, stdout+stderr → `output.txt`, both next to the `.py` and shown in a 25% right column (see `lua/plugins/README.md` → Terminal).
 
