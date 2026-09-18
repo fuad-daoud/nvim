@@ -20,7 +20,7 @@ CI runs stylua on PRs via `.github/workflows/stylua.yml`.
 ./install.sh --check  # audit: ✓/✗ per required tool, exit 1 if anything is missing
 ```
 
-`install.sh` detects the distro and runs `install/arch.sh` (pacman) or `install/ubuntu.sh` (apt + NodeSource + pinned release tarballs under `/opt`), then `install/shared.sh` (`go install`, `npm -g`, `luarocks`, and the `zls` GitHub release) so both distros get the same tools. Pinned versions and the required-binary list live in `install/manifest.sh`.
+`install.sh` detects the distro and runs `install/arch.sh` (pacman) or `install/ubuntu.sh` (apt + NodeSource + pinned release tarballs under `/opt`), then `install/shared.sh` (`go install`, `npm -g`, `luarocks`, and the `zls` GitHub release) so both distros get the same tools. Pinned versions and the required-binary list live in `install/manifest.sh`. Python tooling (`pyright` via npm, `ruff` from its GitHub release) is part of the shared layer.
 
 Gotchas the script already handles, kept here for context:
 - `luarocks --lua-version 5.1 install magick --local` — the `magick` rock must be built for Lua 5.1 so LuaJIT can load it (`init.lua` adds `~/.luarocks` to `package.path`).
@@ -50,6 +50,7 @@ See `lua/scripts/CLAUDE.md` for details on each script.
 Plugins live in two places:
 - **Inline in `lua/scripts/lazy.lua`**: colorscheme (rose-pine), conform, hardtime, colorizer, todo-comments, lazydev, notify, baleia, clock
 - **`lua/plugins/*.lua`**: one spec per file, all auto-imported via `{ import = 'plugins' }`
+- **`after/ftplugin/*.lua`**: buffer-local filetype extras (currently `python.lua` → `<leader>rp` bound to `lua/pyrun.lua`)
 
 See `lua/plugins/CLAUDE.md` for details on each plugin file.
 
@@ -66,5 +67,7 @@ See `lua/plugins/CLAUDE.md` for details on each plugin file.
 `lua/pr_review.lua` — PR review on top of diffview: `:PrReview` open flow and GitHub-synced "viewed" marks (see `lua/plugins/CLAUDE.md` → diffview.lua).
 
 `lua/pr_companion.lua` — per-PR headless Claude Code review companion (`:PrCompanion`, `:PrAsk`, `:PrChat`); sessions and pane transcripts under `stdpath('data')/pr_review/`.
+
+`lua/pyrun.lua` — `<leader>rp` two-pane Python runner: `input.txt` → stdin, stdout+stderr → `output.txt`, both next to the `.py` and shown in a 25% right column (see `lua/plugins/README.md` → Terminal).
 
 `lua/pr_review_notes.lua` — draft and submit a GitHub review from diffview (`:PrNote`, `:PrNoteDelete`, `:PrReviewSubmit`, `:PrReviewDiscard`; see `lua/plugins/CLAUDE.md` → diffview.lua → Review notes).

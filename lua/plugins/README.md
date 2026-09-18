@@ -23,6 +23,8 @@ LSP servers are installed by `./install.sh` (see the root `CLAUDE.md`) — **Mas
 | `jsonls` | JSON |
 | `yamlls` | YAML |
 | `bashls` | Bash |
+| `pyright` | Python types/navigation (`typeCheckingMode = basic`, organize-imports disabled — ruff owns it) |
+| `ruff` | Python lint diagnostics + fix/organize-imports code actions (hover disabled — pyright owns it) |
 | `kotlin_language_server` | Kotlin (documentHighlight + formatting disabled — see `java.lua` note) |
 | jdtls | Java — managed by `nvim-jdtls` in `java.lua`, not listed here |
 
@@ -203,7 +205,7 @@ Layout: 90% width/height, prompt at bottom, preview cuts off at 180 cols.
 
 `auto_install = true` — parsers install automatically on first open of a new filetype.
 
-Pre-installed parsers: `bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `vim`, `vimdoc`, `go`, `rust`, `zig`, `dockerfile`, `java`, `kotlin`.
+Pre-installed parsers: `bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `vim`, `vimdoc`, `go`, `rust`, `zig`, `dockerfile`, `python`, `java`, `kotlin`.
 
 Includes a custom **templ** parser (`virschmann/tree-sitter-templ`) for Go templating with the `a-h/templ` tool. Markdown uses additional vim regex highlighting for correct indent behaviour.
 
@@ -224,6 +226,37 @@ Default mode is a large floating terminal (`<C-\>`). The `<leader>tf` keymap ope
 | `<leader>tv` | Toggle vertical terminal (40% width) |
 | `<leader>tf` | Toggle large floating terminal |
 | `<A-h/j/k/l>` | Navigate to adjacent window (normal + terminal mode) |
+
+`after/ftplugin/python.lua` binds a buffer-local `<leader>rp` to `require('pyrun').run()` (`lua/pyrun.lua`): saves the file, opens a 25%-wide right column with `input.txt` (top) and `output.txt` (bottom) from the same directory, then runs `python3 <file> < input.txt > output.txt 2>&1` via `vim.system` and reloads the output pane. No terminal window; the cursor stays in the `.py`. Non-zero exit → `vim.notify` warning. Panes are reused on re-run; `input.txt` is saved first if modified.
+
+---
+
+## LeetCode — `leetcode.lua`
+
+**Plugin:** `kawre/leetcode.nvim`
+
+Browse, solve, run and submit LeetCode problems without leaving Neovim. `lang = 'python3'`. Lazy-loads on `:Leet`, or eagerly when Neovim is started as `nvim leetcode.nvim` (opens the dashboard directly). `plugins.non_standalone = true` so `:Leet` also works from a session with other buffers open.
+
+**Command gotcha:** until a session is started, `:Leet` is a bare no-args command (E488 on `:Leet <anything>`). Start with `:Leet` / `<leader>lm` first; the subcommands (`run`, `submit`, `cookie update`, …) are only registered once the dashboard has mounted.
+
+The `injector.python3.before` list prepends `from typing import *`, `from collections import *` and `import heapq, math, bisect, itertools, functools` to every solution stub so it runs locally without hand-adding the imports LeetCode's runtime provides implicitly.
+
+`image_support = false` — problem-description images are rendered as text (image.nvim is tuned for markdown only).
+
+One-time login: start a session (`<leader>lm`), then `:Leet cookie update` and paste the **full cookie header** — it must contain both `csrftoken=…` and `LEETCODE_SESSION=…` (DevTools → Network → any leetcode.com request → Request Headers → `Cookie`). Pasting only the session value fails with "Bad csrf token format".
+
+### Keymaps
+
+| Key | Action |
+|-----|--------|
+| `<leader>ll` | Problem list (Telescope) |
+| `<leader>lr` | Run against the test cases |
+| `<leader>ls` | Submit |
+| `<leader>ld` | Toggle problem description |
+| `<leader>lc` | Open the console (custom test cases) |
+| `<leader>lm` | Start a session / open the dashboard menu |
+
+Inside the console: `q` toggle, `r` reset test cases, `U` use current test case, `H`/`L` focus test cases / result (plugin defaults).
 
 ---
 
@@ -368,7 +401,7 @@ These don't have their own file in `lua/plugins/`.
 | Svelte | prettierd → prettier |
 | YAML | prettierd |
 | Markdown | prettierd → prettier |
-| Python | isort → black |
+| Python | ruff_organize_imports → ruff_format |
 | SQL | sql-formatter |
 | Elixir | prettierd |
 | Go | LSP (gofumpt via gopls) |
