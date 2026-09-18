@@ -19,7 +19,7 @@
 ## Global Constraints
 
 - All Lua formatted with stylua: `.stylua.toml` — 160 columns, 2-space indent, single quotes, no call parentheses. Run `stylua .` before every commit; `stylua --check .` must pass.
-- No behaviour change for the PR companion except: buffer name becomes `pr-companion://<owner_repo_N>` and sessions are keyed by `<owner_repo_N>` instead of the PR URL (old entries in `sessions.json` simply go stale).
+- No behaviour change for the PR companion except: buffer name becomes `pr-companion://<owner_repo_N>`, sessions are keyed by `<owner_repo_N>` instead of the PR URL (old entries in `sessions.json` simply go stale), and the busy message reads `busy with the previous request`. Every notification keeps the `pr_companion:` prefix (`spec.label`).
 - Model/effort/timeout stay `--model opus --effort high`, 10 minutes.
 - Commit messages end with `Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>`.
 - There is no Lua test harness in this repo. Verification is `stylua --check .` plus a headless Neovim load (`nvim --headless … -c q`).
@@ -35,7 +35,7 @@
 **Interfaces:**
 - Consumes: nothing new.
 - Produces (used by Task 2 and by round 2):
-  - `require('companion').new(spec) → c` where `spec = { name, scheme, tools, allowed, denied, pane_width?, not_ready }`
+  - `require('companion').new(spec) → c` where `spec = { name, label, scheme, tools, allowed, denied, pane_width?, not_ready }`
   - `c.set_current { key, title, root }`, `c.current()`, `c.busy()`, `c.uuid()`
   - `c.session()`, `c.save_session(tbl)`, `c.clear_session()`, `c.reset()`
   - `c.find_pane_buf()`, `c.pane_buf()`, `c.pane_win()`, `c.open_pane()`, `c.toggle()`, `c.append(lines) → row`, `c.region(row, len)`, `c.set_lines(from, to, lines)`
@@ -74,8 +74,9 @@ local function describe_tool(block)
   return ('· %s %s'):format(block.name, what)
 end
 
---- spec = { name, scheme, tools, allowed, denied, pane_width?, not_ready }
----  name       data dir under stdpath('data') and the prefix of every notification
+--- spec = { name, label, scheme, tools, allowed, denied, pane_width?, not_ready }
+---  name       data dir under stdpath('data')
+---  label      prefix of every notification: '<label>: …'
 ---  scheme     pane buffer name is `<scheme>://<key>`
 ---  tools      `--tools` value, e.g. 'Read,Grep,Glob,Bash'
 ---  allowed    `--allowedTools` entries; denied  `--disallowedTools` entries (either may be empty)
@@ -94,7 +95,7 @@ function M.new(spec)
   c.uuid = M.uuid
 
   local function notify(msg, level)
-    vim.notify(spec.name .. ': ' .. msg, level or vim.log.levels.INFO)
+    vim.notify(spec.label .. ': ' .. msg, level or vim.log.levels.INFO)
   end
 
   ---------------------------------------------------------------------------
@@ -457,7 +458,7 @@ return M
 Run: `stylua lua/companion.lua && stylua --check lua/companion.lua`
 Expected: exit 0, no output.
 
-Run: `nvim --headless -c "lua local c = require('companion').new { name = 'x', scheme = 'x', tools = 'Read', allowed = {}, denied = {}, not_ready = 'n' }; assert(c.uuid():match('^%x+%-%x+%-4%x%x%x%-[89ab]%x%x%x%-%x+$')); assert(c.session() == nil); print('ok')" -c q`
+Run: `nvim --headless -c "lua local c = require('companion').new { name = 'x', label = 'x', scheme = 'x', tools = 'Read', allowed = {}, denied = {}, not_ready = 'n' }; assert(c.uuid():match('^%x+%-%x+%-4%x%x%x%-[89ab]%x%x%x%-%x+$')); assert(c.session() == nil); print('ok')" -c q`
 Expected: prints `ok`, exit 0.
 
 - [ ] **Step 3: Commit**
@@ -540,6 +541,7 @@ end
 
 local c = require('companion').new {
   name = 'pr_review',
+  label = 'pr_companion',
   scheme = 'pr-companion',
   tools = 'Read,Grep,Glob,Bash',
   allowed = ALLOWED,
@@ -646,7 +648,14 @@ function M.ask(opts)
   end)
 end
 
-M.chat = c.chat
+function M.chat()
+  local s = c.session()
+  if not s or not s.session_id then
+    return vim.notify('pr_companion: no session for this PR; run :PrCompanion to bootstrap', vim.log.levels.INFO)
+  end
+  c.chat()
+end
+
 M.toggle = c.toggle
 M.reset = c.reset
 

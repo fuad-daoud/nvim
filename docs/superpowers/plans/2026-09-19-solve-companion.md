@@ -54,6 +54,7 @@ local M = {}
 
 local c = require('companion').new {
   name = 'solve',
+  label = 'solve_companion',
   scheme = 'solve-companion',
   tools = 'Read,Grep,Glob,Bash',
   allowed = { 'Bash(python3 lc.py test*)', 'Bash(make test*)' },
@@ -362,20 +363,16 @@ Expected: prints `ok`, exit 0.
 
 - [ ] **Step 3: Header-parse check against a fixture**
 
-Run (creates a throwaway workbench in `/tmp`, never touches the real one):
+Run (creates a throwaway workbench in `/tmp` with a fake problem number, so nothing under `stdpath('data')/solve/` for a real problem is touched):
 
 ```bash
-d=$(mktemp -d) && touch "$d/lc.py" && printf '# 49. Group Anagrams [Medium]\n# https://leetcode.com/problems/group-anagrams/\n' > "$d/solve.py" && \
-nvim --headless "$d/solve.py" -c "lua require('solve_companion').setup(); vim.cmd('Solve toggle'); local name = vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf()); local found = false; for _, b in ipairs(vim.api.nvim_list_bufs()) do if vim.api.nvim_buf_get_name(b) == 'solve-companion://0049-group-anagrams' then found = true; assert(vim.api.nvim_buf_get_lines(b, 0, 1, false)[1] == '# 49. Group Anagrams [Medium]') end end; assert(found, 'pane buffer not found'); print('ok')" -c 'qa!'; rm -rf "$d"
+d=$(mktemp -d) && touch "$d/lc.py" && printf '# 9999. Fixture Problem [Easy]\n# https://leetcode.com/problems/fixture-problem/\n' > "$d/solve.py" && \
+nvim --headless "$d/solve.py" -c "lua require('solve_companion').setup(); vim.cmd('Solve toggle'); local name = vim.api.nvim_buf_get_name(vim.api.nvim_get_current_buf()); local found = false; for _, b in ipairs(vim.api.nvim_list_bufs()) do if vim.api.nvim_buf_get_name(b) == 'solve-companion://9999-fixture-problem' then found = true; assert(vim.api.nvim_buf_get_lines(b, 0, 1, false)[1] == '# 9999. Fixture Problem [Easy]') end end; assert(found, 'pane buffer not found'); print('ok')" -c 'qa!'; rm -rf "$d"
 ```
 
 Expected: prints `ok`, exit 0. (`Solve toggle` with no session still opens the pane; that is the same as `:PrCompanion toggle`.)
 
-Then remove the fixture's leftovers from the data dir so the real workbench starts clean:
-
-```bash
-rm -f "$(nvim --headless -c "lua io.write(vim.fn.stdpath('data'))" -c q 2>/dev/null)/solve/0049-group-anagrams.md"
-```
+`Solve toggle` only builds the buffer, it writes no mirror file, so there is nothing to clean up; if a `9999-fixture-problem.md` ever appears under `stdpath('data')/solve/` it is safe to delete (no real problem has that number).
 
 - [ ] **Step 4: Commit**
 
@@ -448,7 +445,7 @@ Expected: exit 0.
 Run:
 
 ```bash
-d=$(mktemp -d) && touch "$d/lc.py" && printf '# 1. Two Sum [Easy]\n# https://leetcode.com/problems/two-sum/\n' > "$d/solve.py" && \
+d=$(mktemp -d) && touch "$d/lc.py" && printf '# 9999. Fixture Problem [Easy]\n# https://leetcode.com/problems/fixture-problem/\n' > "$d/solve.py" && \
 nvim --headless "$d/solve.py" -c "lua assert(vim.fn.maparg('<leader>ah', 'n') ~= '', 'ah'); assert(vim.fn.maparg('<leader>aa', 'x') ~= '', 'aa x'); assert(vim.fn.exists(':SolveHint') == 2); print('ok')" -c 'qa!'; rm -rf "$d"
 ```
 
@@ -509,7 +506,7 @@ Keymaps are buffer-local in `after/ftplugin/python.lua`, only when `lc.py` sits 
 Find the paragraph in the Terminal section that begins with `` `after/ftplugin/python.lua` binds a buffer-local `<leader>rp` ``. Append this sentence to the end of that paragraph:
 
 ```
-In an `lc.py` workbench dir the top pane is `cases.txt` and the command is `python3 lc.py test`; the same ftplugin adds `<leader>rd` (open `problem.md` in a tab) and the `<leader>a*` coach keymaps from `lua/solve_companion.lua` (see `lua/plugins/CLAUDE.md` → Solve companion).
+In an `lc.py` workbench dir the same ftplugin also adds the `<leader>a*` coach keymaps from `lua/solve_companion.lua` (see `lua/plugins/CLAUDE.md` → Solve companion).
 ```
 
 - [ ] **Step 4: Commit**

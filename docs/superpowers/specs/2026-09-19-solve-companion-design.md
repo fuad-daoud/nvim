@@ -28,6 +28,7 @@ management, `append`/`region`/`stream_into`, the sessions store, `persist`, `tou
 | field | type | meaning |
 |---|---|---|
 | `name` | string | data dir `stdpath('data')/<name>/` holding `sessions.json` and `<key>.md` pane mirrors |
+| `label` | string | prefix of every engine notification (`'<label>: …'`), e.g. `'pr_companion'` — kept separate from `name` because the PR data dir is `pr_review` |
 | `scheme` | string | buffer-name prefix: `<scheme>://<key>` |
 | `tools` | string | `--tools` value, e.g. `'Read,Grep,Glob,Bash'` |
 | `allowed` | string[] | `--allowedTools` entries |
@@ -52,7 +53,7 @@ Model/effort/timeout stay fixed (`--model opus --effort high`, 10 min) as today.
 - `c.session()` → table or nil for `current.key`.
 - `c.save_session(tbl)` — shallow-merge `tbl` into the session and persist.
 - `c.clear_session()` — drop the entry and persist.
-- `c.reset()` — `clear_session` + delete mirror file + delete pane buffer + notify `'<name>: session cleared'`.
+- `c.reset()` — `clear_session` + delete mirror file + delete pane buffer + notify `'<label>: session cleared'`.
 
 Sessions are keyed by `current.key` (the PR store is keyed by full URL today; those entries go stale and each open
 PR gets one re-bootstrap — accepted).
@@ -87,8 +88,8 @@ Unchanged: missing `claude` binary, timeout kill, `result.is_error`, stderr on n
 
 ## 2. `lua/pr_companion.lua` — thin domain layer
 
-Keeps: `TOOLS`/`ALLOWED`/`DENIED` (into the spec, `name = 'pr_review'`, `scheme = 'pr-companion'`),
-`bootstrap_prompt`, `snippet` (diffview side detection), `bootstrap`, `ask`, `offer`, `setup`
+Keeps: `TOOLS`/`ALLOWED`/`DENIED` (into the spec, `name = 'pr_review'`, `label = 'pr_companion'`, `scheme = 'pr-companion'`),
+`bootstrap_prompt`, `snippet` (diffview side detection), `bootstrap`, `ask`, `chat` (own no-session message, then `c.chat()`), `offer`, `setup`
 (`:PrCompanion`, `:PrAsk`, `:PrChat`). `bootstrap` keeps its failure behaviour (removes the whole `## Summary` entry)
 via `on_done`. `offer` computes `key` from the URL (`owner_repo_N`) and calls `c.set_current`.
 
@@ -107,7 +108,7 @@ Only observable change: the buffer name becomes `pr-companion://<owner_repo_N>`.
 4. `slug` = last path segment of the URL. `key = ('%04d-%s'):format(N, slug)` (same naming as `problems/`).
 5. `c.set_current { key, title = '<N>. <Title> [<Difficulty>]', root = dir }` and remember `number, name, difficulty, url`.
 
-`spec`: `name = 'solve'`, `scheme = 'solve-companion'`, `tools = 'Read,Grep,Glob,Bash'`,
+`spec`: `name = 'solve'`, `label = 'solve_companion'`, `scheme = 'solve-companion'`, `tools = 'Read,Grep,Glob,Bash'`,
 `allowed = { 'Bash(python3 lc.py test*)', 'Bash(make test*)' }`, `denied = {}`,
 `not_ready = 'open solve.py in an lc.py workbench first'`.
 
@@ -145,7 +146,7 @@ The pane entry for bootstrap is `## Coach`, `''`, `_bootstrapping…_`; failure 
 | `:Solve [bootstrap\|toggle\|chat\|reset]` | as `:PrCompanion`; bare form bootstraps when no session, else toggles the pane |
 | `:SolveHint` | `hint = session.hint + 1`. If `hint > 4`: notify `'solve_companion: hint ladder exhausted — ask a specific question or :SolveDebrief'`, no request. Else entry `### 💡 Hint <hint>/4`, `''`, `_thinking…_`; prompt: `Hint <hint> of 4. Level <hint> = <level text>. Stay at this level; nothing stronger.` Level texts: 1 "an observation or reframing of the problem", 2 "which data structure or pattern family to think about", 3 "the key insight that makes it work", 4 "a prose sketch of the algorithm, no code". On success `save_session { hint = hint }` (only after the answer arrives so a failed request does not burn a rung). |
 | `:SolveAsk` (range) | as `:PrAsk`: visual → `File: solve.py  lines a–b` + fenced `python` snippet (buffer name relative to `root`, side note omitted), then `vim.ui.input 'Ask coach: '`. Entry `### ❯ <q>`. |
-| `:SolveReview` | entry `### 🔍 Review`, `''`, `_reviewing…_`; prompt: `Read solve.py and cases.txt, then run python3 lc.py test. Point at the first failing case and the line responsible, or the gap in my reasoning if all pass but the approach is wrong or too slow for the constraints. Do not rewrite my code; at most one question or nudge.` |
+| `:SolveReview` | entry `### 🔍 Review`, `''`, `_reviewing…_`; prompt: `Review my attempt. Read solve.py and cases.txt, then run python3 lc.py test. Point at the first failing case and the line responsible, or — if every case passes — at the gap in my reasoning if the approach is wrong or too slow for the constraints. Do not rewrite my code; at most one question or nudge.` |
 | `:SolveDebrief` | Lua runs `python3 lc.py test` in `root` (`vim.system … :wait()`). If exit ≠ 0: `vim.ui.select { 'Yes', 'No' }` with prompt `'Tests are failing — debrief anyway? (reveals the solution)'`; No → return. Entry `## 🎓 Debrief`, `''`, `_debriefing…_`; prompt: `Debrief. I am done with this problem. Explain the optimal approach and its time/space complexity, compare it with my solve.py (read it), say what to remember for similar problems, and name related problems from ROADMAP.md. Code is allowed now.` |
 | `:SolveChat` | `c.chat()` |
 
