@@ -104,7 +104,40 @@ return {
         end,
       })
 
-      vim.lsp.enable { 'lua_ls', 'gopls', 'zls', 'tailwindcss', 'html', 'cssls', 'jsonls', 'yamlls', 'bashls', 'pyright', 'ruff' }
+      -- TypeScript/React: vtsls (VS Code's TS extension as an LSP) for types/navigation/imports, eslint for lint.
+      -- Both pick up the project's own node_modules/typescript and eslint when present. Formatting is
+      -- prettierd via conform, so neither server formats.
+      vim.lsp.config('vtsls', {
+        settings = {
+          vtsls = { autoUseWorkspaceTsdk = true, enableMoveToFileCodeAction = true },
+          typescript = {
+            updateImportsOnFileMove = { enabled = 'always' },
+            suggest = { completeFunctionCalls = true },
+            inlayHints = {
+              parameterNames = { enabled = 'literals' },
+              parameterTypes = { enabled = true },
+              functionLikeReturnTypes = { enabled = true },
+              propertyDeclarationTypes = { enabled = true },
+              enumMemberValues = { enabled = true },
+            },
+          },
+          javascript = {
+            updateImportsOnFileMove = { enabled = 'always' },
+            suggest = { completeFunctionCalls = true },
+            inlayHints = {
+              parameterNames = { enabled = 'literals' },
+              parameterTypes = { enabled = true },
+              functionLikeReturnTypes = { enabled = true },
+            },
+          },
+        },
+      })
+
+      vim.lsp.config('eslint', {
+        settings = { format = false },
+      })
+
+      vim.lsp.enable { 'lua_ls', 'gopls', 'zls', 'vtsls', 'eslint', 'tailwindcss', 'html', 'cssls', 'jsonls', 'yamlls', 'bashls', 'pyright', 'ruff' }
 
       vim.diagnostic.config {
         virtual_text = {

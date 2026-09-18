@@ -24,6 +24,8 @@ declare -ax REQUIRED_BINS=(
   zig zls lua-language-server stylua clangd
   # node + npm-installed LSPs and formatters
   node npm yaml-language-server bash-language-server tailwindcss-language-server prettier prettierd
+  # typescript / react (vscode-langservers-extracted provides the eslint/html/css/json servers)
+  vtsls tsc vscode-eslint-language-server vscode-html-language-server vscode-css-language-server vscode-json-language-server
   # python
   python3 pyright-langserver ruff
   # linters / formatters

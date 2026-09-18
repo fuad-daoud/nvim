@@ -6,7 +6,7 @@ Each file returns a lazy.nvim plugin spec. All files are auto-imported by `{ imp
 
 Configures `nvim-lspconfig` directly — **no Mason**. Servers must be installed via system packages (see root CLAUDE.md).
 
-Active servers: `lua_ls`, `gopls`, `zls`, `tailwindcss`, `html`, `cssls`, `jsonls`, `yamlls`, `bashls`, `pyright`, `ruff`. Python runs two servers on purpose: pyright (types/navigation, organize-imports disabled) and ruff (lint + fix/organize-imports code actions, hover disabled) — don't re-enable the overlapping capability on either side or diagnostics double up.
+Active servers: `lua_ls`, `gopls`, `zls`, `vtsls`, `eslint`, `tailwindcss`, `html`, `cssls`, `jsonls`, `yamlls`, `bashls`, `pyright`, `ruff`. Python runs two servers on purpose: pyright (types/navigation, organize-imports disabled) and ruff (lint + fix/organize-imports code actions, hover disabled) — don't re-enable the overlapping capability on either side or diagnostics double up. TypeScript/React likewise splits: vtsls (types, navigation, auto-imports, inlay hints, rename-file import updates) and eslint (lint diagnostics + fix code actions, formatting off). Neither formats — prettierd via conform owns that. `html`/`cssls`/`jsonls`/`eslint` all come from the one `vscode-langservers-extracted` npm package.
 
 Capabilities come from `blink.cmp`. LSP keymaps are set in the `LspAttach` autocmd:
 
@@ -96,7 +96,7 @@ Fuzzy finder. Extensions loaded: `fzf`, `ui-select`.
 
 ## treesitter.lua
 
-Auto-installs parsers. Pre-installed: bash, c, diff, html, lua, luadoc, markdown, query, vim, vimdoc, go, rust, zig, dockerfile, python. Includes a custom **templ** parser from `virschmann/tree-sitter-templ`.
+Auto-installs parsers. Pre-installed: bash, c, diff, html, lua, luadoc, markdown, query, vim, vimdoc, go, rust, zig, dockerfile, python, javascript, typescript, tsx, css, json. Includes a custom **templ** parser from `virschmann/tree-sitter-templ`. Also holds `nvim-ts-autotag` (auto-close/auto-rename JSX and HTML tags; lazy on html/jsx/tsx/templ/markdown) since it drives off treesitter.
 
 ## toggleterm.lua
 

@@ -20,6 +20,11 @@ return {
         'zig',
         'dockerfile',
         'python',
+        'javascript',
+        'typescript',
+        'tsx',
+        'css',
+        'json',
       },
       -- Autoinstall languages that are not installed
       auto_install = true,
@@ -60,5 +65,10 @@ return {
       }
       vim.treesitter.language.register('templ', 'templ')
     end,
+  },
+  { -- auto-close and auto-rename JSX/HTML tags (mini.pairs only does brackets/quotes)
+    'windwp/nvim-ts-autotag',
+    ft = { 'html', 'javascriptreact', 'typescriptreact', 'templ', 'markdown' },
+    opts = {},
   },
 }

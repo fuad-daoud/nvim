@@ -47,6 +47,12 @@ npm_tool prettierd @fsouza/prettierd
 npm_tool yaml-language-server yaml-language-server
 npm_tool bash-language-server bash-language-server
 npm_tool tailwindcss-language-server @tailwindcss/language-server
+# TypeScript/React: vtsls wraps VS Code's TS extension; it uses the project's node_modules/typescript
+# when present and falls back to the global one. vscode-langservers-extracted ships the eslint,
+# html, css and json servers together.
+npm_tool vtsls @vtsls/language-server
+npm_tool tsc typescript
+npm_tool vscode-eslint-language-server vscode-langservers-extracted
 npm_tool mmdc @mermaid-js/mermaid-cli
 # pyright ships pyright-langserver, which is what nvim-lspconfig starts
 npm_tool pyright-langserver pyright

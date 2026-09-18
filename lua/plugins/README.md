@@ -17,6 +17,8 @@ LSP servers are installed by `./install.sh` (see the root `CLAUDE.md`) — **Mas
 | `lua_ls` | Lua (with `callSnippet = Replace`, missing-fields disabled) |
 | `gopls` | Go (with `unusedparams`, `shadow`, `staticcheck`, `gofumpt`) |
 | `zls` | Zig |
+| `vtsls` | TypeScript/JavaScript/React — VS Code's TS extension as an LSP (workspace tsdk, inlay hints, auto-imports, import updates on file move; no formatting) |
+| `eslint` | JS/TS lint diagnostics + fix code actions via `<leader>ca` (formatting disabled — prettierd owns it) |
 | `tailwindcss` | Tailwind CSS |
 | `html` | HTML |
 | `cssls` | CSS |
@@ -205,7 +207,9 @@ Layout: 90% width/height, prompt at bottom, preview cuts off at 180 cols.
 
 `auto_install = true` — parsers install automatically on first open of a new filetype.
 
-Pre-installed parsers: `bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `vim`, `vimdoc`, `go`, `rust`, `zig`, `dockerfile`, `python`, `java`, `kotlin`.
+Pre-installed parsers: `bash`, `c`, `diff`, `html`, `lua`, `luadoc`, `markdown`, `markdown_inline`, `query`, `vim`, `vimdoc`, `go`, `rust`, `zig`, `dockerfile`, `python`, `java`, `kotlin`, `javascript`, `typescript`, `tsx`, `css`, `json`.
+
+`windwp/nvim-ts-autotag` lives in the same file: auto-closes and auto-renames JSX/HTML tags (`mini.pairs` only handles brackets and quotes). Loads on `html`, `javascriptreact`, `typescriptreact`, `templ`, `markdown`.
 
 Includes a custom **templ** parser (`virschmann/tree-sitter-templ`) for Go templating with the `a-h/templ` tool. Markdown uses additional vim regex highlighting for correct indent behaviour.
 
