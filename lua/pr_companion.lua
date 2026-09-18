@@ -184,13 +184,34 @@ end
 -- Pane
 ---------------------------------------------------------------------------
 
-local function pane_buf()
+-- Exact-name lookup: bufnr() takes a pattern, so bufnr('pr-companion://11') would happily return PR 112's pane.
+local function find_pane_buf()
   local name = 'pr-companion://' .. current.number
-  local buf = vim.fn.bufnr(name)
-  if buf ~= -1 and vim.api.nvim_buf_is_valid(buf) then
+  for _, buf in ipairs(vim.api.nvim_list_bufs()) do
+    if vim.api.nvim_buf_get_name(buf) == name then
+      return buf
+    end
+  end
+end
+
+-- Programmatic edits to a buffer shown in another window fire no TextChanged, and render-markdown only re-renders on
+-- events it listens to — streamed answers would stay raw markdown until the cursor entered the pane. Fire it by hand.
+local function touched(buf)
+  vim.api.nvim_exec_autocmds('TextChanged', { buffer = buf, modeline = false })
+end
+
+local function pane_buf()
+  local buf = find_pane_buf()
+  if buf and vim.api.nvim_buf_is_loaded(buf) then
     return buf
   end
+  if buf then
+    -- :bdelete (e.g. <leader>hb's %bdelete) unloads the pane: still findable by name but empty, with no filetype or
+    -- highlighter. Wipe it and rebuild from the mirror file — every write persists, so in-flight regions keep their rows.
+    vim.api.nvim_buf_delete(buf, { force = true })
+  end
   buf = vim.api.nvim_create_buf(false, true)
+  local name = 'pr-companion://' .. current.number
   vim.api.nvim_buf_set_name(buf, name)
   vim.bo[buf].buftype = 'nofile'
   vim.bo[buf].bufhidden = 'hide'
@@ -208,7 +229,7 @@ local function pane_buf()
 end
 
 local function pane_win()
-  local buf = vim.fn.bufnr('pr-companion://' .. current.number)
+  local buf = find_pane_buf()
   for _, win in ipairs(vim.api.nvim_list_wins()) do
     if vim.api.nvim_win_get_buf(win) == buf then
       return win
@@ -254,6 +275,7 @@ local function append(lines)
   local buf = pane_buf()
   local row = vim.api.nvim_buf_line_count(buf)
   vim.api.nvim_buf_set_lines(buf, row, row, false, lines)
+  touched(buf)
   scroll_if_visible(vim.api.nvim_buf_line_count(buf))
   persist(buf)
   return row
@@ -266,6 +288,7 @@ local function region(row, len)
     local buf = pane_buf()
     vim.api.nvim_buf_set_lines(buf, r.row, r.row + r.len, false, lines)
     r.len = #lines
+    touched(buf)
     scroll_if_visible(math.min(r.row + r.len, vim.api.nvim_buf_line_count(buf)))
     persist(buf)
   end
@@ -434,8 +457,8 @@ function M.reset()
   load_sessions()[current.url] = nil
   save_sessions()
   os.remove(pane_file())
-  local buf = vim.fn.bufnr('pr-companion://' .. current.number)
-  if buf ~= -1 then
+  local buf = find_pane_buf()
+  if buf then
     vim.api.nvim_buf_delete(buf, { force = true })
   end
   vim.notify('pr_companion: session cleared', vim.log.levels.INFO)

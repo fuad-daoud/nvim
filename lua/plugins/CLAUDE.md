@@ -168,7 +168,7 @@ One headless Claude Code session per PR (`claude -p --model opus --effort high`)
 - `:PrReview` on a PR with no session → `vim.ui.select` popup "Bootstrap AI companion?" — Yes runs the bootstrap (PR description + orient via `git diff`, replies with a summary into the pane); No records `declined` so it stops asking.
 - `:PrCompanion [bootstrap|toggle|chat|reset]` — bare: bootstrap if none, else toggle the pane. `reset` forgets the session + pane file.
 - `:PrAsk` / `<leader>ga` — visual: sends the selected lines as `File: path  lines a–b  (PR head|base <branch>)` + fenced code + your question (`vim.ui.input`); normal: question only. While it works, the placeholder streams live — elapsed clock, recent tool calls (`· Bash git diff …`, `· 💭 thinking`), and the answer text as it arrives (`--output-format stream-json`) — then the final answer replaces it. One request at a time.
-- `<leader>gA` — toggle the pane (right split, 60 cols, markdown; `q` closes).
+- `<leader>gA` — toggle the pane (right split, 60 cols, markdown; `q` closes). Every write fires `TextChanged` on the pane by hand so render-markdown re-renders while the cursor is elsewhere (API edits fire nothing). If the pane got unloaded (`:bdelete`, `<leader>hb`), `pane_buf()` wipes and rebuilds it from the mirror file so in-flight regions keep their rows instead of clobbering the header.
 - `:PrChat` — toggleterm float running `claude --resume <id>` for a long conversation with the same memory.
 
 ## config-local.lua
