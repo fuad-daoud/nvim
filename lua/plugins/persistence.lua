@@ -1,5 +1,6 @@
--- diffview:// and pr-*:// buffers are scratch (no file behind them). If a session saves them they come back as
--- broken empty tabs and gopls floods `-32700 DocumentURI scheme is not 'file'`. Tear them down before every save.
+-- diffview://, pr-*:// and solve-companion:// buffers are scratch (no file behind them). If a session saves them they
+-- come back as broken empty tabs and gopls floods `-32700 DocumentURI scheme is not 'file'`. Tear them down before
+-- every save.
 local function drop_review_buffers()
   local ok, lib = pcall(require, 'diffview.lib')
   if ok then
@@ -13,7 +14,13 @@ local function drop_review_buffers()
   end
   for _, b in ipairs(vim.api.nvim_list_bufs()) do
     local name = vim.api.nvim_buf_get_name(b)
-    if name:find '^diffview://' or name:find '^pr%-companion://' or name:find '^pr%-merge://' or name:find '^pr%-review%-summary://' then
+    if
+      name:find '^diffview://'
+      or name:find '^pr%-companion://'
+      or name:find '^pr%-merge://'
+      or name:find '^pr%-review%-summary://'
+      or name:find '^solve%-companion://'
+    then
       pcall(vim.api.nvim_buf_delete, b, { force = true })
     end
   end
