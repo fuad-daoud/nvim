@@ -230,7 +230,7 @@ Default mode is a large floating terminal (`<C-\>`). The `<leader>tf` keymap ope
 | `<leader>tf` | Toggle large floating terminal |
 | `<A-h/j/k/l>` | Navigate to adjacent window (normal + terminal mode) |
 
-`after/ftplugin/python.lua` binds a buffer-local `<leader>rp` to `require('pyrun').run()` (`lua/pyrun.lua`): saves the file, opens a 25%-wide right column with `input.txt` (top) and `output.txt` (bottom) from the same directory, then runs `python3 <file> < input.txt > output.txt 2>&1` via `vim.system` and reloads the output pane. No terminal window; the cursor stays in the `.py`. Non-zero exit → `vim.notify` warning. Panes are reused on re-run; `input.txt` is saved first if modified.
+`after/ftplugin/python.lua` binds a buffer-local `<leader>rp` to `require('pyrun').run()` (`lua/pyrun.lua`): saves the file, opens a 25%-wide right column with `input.txt` (top) and `output.txt` (bottom) from the same directory, then runs `python3 <file> < input.txt > output.txt 2>&1` via `vim.system` and reloads the output pane. No terminal window; the cursor stays in the `.py`. Non-zero exit → `vim.notify` warning. Panes are reused on re-run; `input.txt` is saved first if modified. In an `lc.py` workbench dir the same ftplugin also adds the `<leader>a*` coach keymaps from `lua/solve_companion.lua` (see `lua/plugins/CLAUDE.md` → Solve companion).
 
 ---
 

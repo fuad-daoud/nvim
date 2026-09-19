@@ -171,6 +171,21 @@ One headless Claude Code session per PR (`claude -p --model opus --effort high`)
 - `<leader>gA` — toggle the pane (right split, 60 cols, markdown; `q` closes). Every write fires `TextChanged` on the pane by hand so render-markdown re-renders while the cursor is elsewhere (API edits fire nothing). If the pane got unloaded (`:bdelete`, `<leader>hb`), `pane_buf()` wipes and rebuilds it from the mirror file so in-flight regions keep their rows instead of clobbering the header.
 - `:PrChat` — toggleterm float running `claude --resume <id>` for a long conversation with the same memory.
 
+### Solve companion (`lua/solve_companion.lua`)
+
+A Socratic coach for the `lc.py` LeetCode workbench (`~/projects/solve`), on the same engine as the PR companion. Every command re-reads `solve.py`'s header (`# N. Title [Difficulty]` + URL) so `make next` switches problems implicitly; the session key is `NNNN-slug` (as in `problems/`), data under `stdpath('data')/solve/`, pane `solve-companion://<key>`. Tools: `Read,Grep,Glob` plus `Bash(python3 lc.py test*)` / `Bash(make test*)` only. The bootstrap prompt embeds `problem.md` and forbids solution code, naming the technique unprompted, or fixing code during review.
+
+Keymaps are buffer-local in `after/ftplugin/python.lua`, only when `lc.py` sits next to the file:
+
+- `:Solve [bootstrap|toggle|chat|reset]` / `<leader>at` — bare: bootstrap when there is no session (restates the problem, lists the binding constraints, asks an opening question), else toggle the pane.
+- `:SolveHint` / `<leader>ah` — next rung of a 4-step ladder (observation → data structure/pattern → key insight → prose sketch). `hint` is stored in the session and only advances when the answer arrives; past 4 it says so without calling claude.
+- `:SolveAsk` / `<leader>aa` (n, x) — question, with the visual selection as a fenced snippet.
+- `:SolveReview` / `<leader>ar` — saves the buffer; the coach runs `lc.py test` itself and points at the first failing case and line (or the reasoning gap) without rewriting.
+- `:SolveDebrief` / `<leader>ad` — runs `lc.py test` locally first; if it fails, asks "debrief anyway?" since the debrief reveals the solution, complexity, and related roadmap problems.
+- `:SolveChat` / `<leader>ac` — toggleterm float on the session.
+
+`persistence.lua` wipes `solve-companion://` buffers before saving a session, like the other scratch panes.
+
 ## config-local.lua
 
 Loads `.nvim.lua` or `.nvimrc` from the project root when present. Used for per-project settings like Go build tags. Hash-verified on first load.

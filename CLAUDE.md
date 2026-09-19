@@ -72,4 +72,6 @@ See `lua/plugins/CLAUDE.md` for details on each plugin file.
 
 `lua/pyrun.lua` — `<leader>rp` two-pane Python runner: `input.txt` → stdin, stdout+stderr → `output.txt`, both next to the `.py` and shown in a 25% right column (see `lua/plugins/README.md` → Terminal).
 
+`lua/solve_companion.lua` — Socratic LeetCode coach for the `lc.py` workbench, on `companion.lua` (`:Solve`, `:SolveHint`, `:SolveAsk`, `:SolveReview`, `:SolveDebrief`, `:SolveChat`; `<leader>a*` in `solve.py`). Session per problem (`NNNN-slug` from `solve.py`'s header) under `stdpath('data')/solve/`.
+
 `lua/pr_review_notes.lua` — draft and submit a GitHub review from diffview (`:PrNote`, `:PrNoteDelete`, `:PrReviewSubmit`, `:PrReviewDiscard`; see `lua/plugins/CLAUDE.md` → diffview.lua → Review notes).
