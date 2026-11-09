@@ -66,12 +66,12 @@ See `lua/plugins/CLAUDE.md` for details on each plugin file.
 
 `lua/pr_review.lua` — PR review on top of diffview: `:PrReview` open flow and GitHub-synced "viewed" marks (see `lua/plugins/CLAUDE.md` → diffview.lua).
 
-`lua/companion.lua` — shared engine for the AI companions: `new(spec)` returns an instance with the headless `claude -p` runner (stream-json, 10 min timeout), the streaming markdown pane (`request`, `region`, rebuild-from-mirror), and a `sessions.json` store keyed by `current.key` under `stdpath('data')/<spec.name>/`.
+`lua/companion.lua` — shared engine for the AI companions: `new(spec)` returns an instance with headless runners for two backends — `claude -p` and Antigravity's `agy` (stream-json both, 10 min timeout; `set_backend` persists `{name, model, effort}` to `backend.json`, a session remembers which backend made it) — the streaming markdown pane (`request`, `region`, rebuild-from-mirror), and a `sessions.json` store keyed by `current.key` under `stdpath('data')/<spec.name>/`.
 
 `lua/pr_companion.lua` — per-PR review companion on top of `companion.lua` (`:PrCompanion`, `:PrAsk`, `:PrChat`): read-only git/gh tool lists, prompts, diffview-aware snippets; data under `stdpath('data')/pr_review/`.
 
 `lua/pyrun.lua` — `<leader>rp` two-pane Python runner: `input.txt` → stdin, stdout+stderr → `output.txt`, both next to the `.py` and shown in a 25% right column (see `lua/plugins/README.md` → Terminal).
 
-`lua/solve_companion.lua` — Socratic LeetCode coach for the `lc.py` workbench, on `companion.lua` (`:Solve`, `:SolveHint`, `:SolveAsk`, `:SolveReview`, `:SolveDebrief`, `:SolveChat`; `<leader>a*` in `solve.py`). Session per problem (`NNNN-slug` from `solve.py`'s header) under `stdpath('data')/solve/`.
+`lua/solve_companion.lua` — Socratic LeetCode coach for the `lc.py` workbench, on `companion.lua` (`:Solve`, `:SolveHint`, `:SolveAsk`, `:SolveReview`, `:SolveDebrief`, `:SolveChat`, `:Solve model`; `<leader>a*` in `solve.py`). `:Solve model` / `<leader>am` picks claude or agy, then model and effort. Session per problem (`NNNN-slug` from `solve.py`'s header) under `stdpath('data')/solve/`.
 
 `lua/pr_review_notes.lua` — draft and submit a GitHub review from diffview (`:PrNote`, `:PrNoteDelete`, `:PrReviewSubmit`, `:PrReviewDiscard`; see `lua/plugins/CLAUDE.md` → diffview.lua → Review notes).

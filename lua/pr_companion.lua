@@ -92,19 +92,17 @@ function M.bootstrap()
   if c.busy() then
     return vim.notify('pr_companion: busy', vim.log.levels.WARN)
   end
-  local id = c.uuid()
   vim.notify('pr_companion: bootstrapping for PR #' .. pr.number .. ' (this takes a minute)…', vim.log.levels.INFO)
   c.request {
     entry = { '## Summary', '', '_bootstrapping…_' },
     label = 'bootstrapping…',
-    extra = { '--session-id', id },
     prompt = bootstrap_prompt(),
-    on_done = function(result, err, r, row)
+    on_done = function(result, err, r, row, id)
       if not result then
         c.set_lines(row, r.row + r.len, {})
         return vim.notify('pr_companion: bootstrap failed\n' .. err, vim.log.levels.ERROR)
       end
-      c.save_session { session_id = id }
+      c.save_session { session_id = id, backend = c.backend().name }
       r.render(vim.list_extend(vim.split(result, '\n'), { '' }))
       vim.notify('pr_companion: ready', vim.log.levels.INFO)
     end,
@@ -154,7 +152,7 @@ function M.ask(opts)
     c.request {
       entry = entry,
       label = 'thinking…',
-      extra = { '--resume', s.session_id },
+      resume = s.session_id,
       prompt = code and table.concat(code, '\n') .. '\n\nQuestion: ' .. q or q,
     }
   end)

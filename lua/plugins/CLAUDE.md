@@ -173,16 +173,17 @@ One headless Claude Code session per PR (`claude -p --model opus --effort high`)
 
 ### Solve companion (`lua/solve_companion.lua`)
 
-A Socratic coach for the `lc.py` LeetCode workbench (`~/projects/solve`), on the same engine as the PR companion. Every command re-reads `solve.py`'s header (`# N. Title [Difficulty]` + URL) so `make next` switches problems implicitly; the session key is `NNNN-slug` (as in `problems/`), data under `stdpath('data')/solve/`, pane `solve-companion://<key>`. Tools: `Read,Grep,Glob` plus `Bash(python3 lc.py test*)` / `Bash(make test*)` only. The bootstrap prompt embeds `problem.md` and forbids solution code, naming the technique unprompted, or fixing code during review.
+A Socratic coach for the `lc.py` LeetCode workbench (`~/projects/solve`), on the same engine as the PR companion. Every command re-reads `solve.py`'s header (`# N. Title [Difficulty]` + URL) so `make next` switches problems implicitly; the session key is `NNNN-slug` (as in `problems/`), data under `stdpath('data')/solve/`, pane `solve-companion://<key>`. Tools: `Read,Grep,Glob` plus `Bash(python3 lc.py test*)` / `Bash(make test*)` only (on agy: free file reads, `command(python3 lc.py test)` / `command(make test)` allow rules, writes/URL fetches/MCP denied; any other command is auto-denied and ends agy's turn, so the prompt steers it to its file tools). The bootstrap prompt embeds `problem.md` and forbids solution code, naming the technique unprompted, or fixing code during review.
 
 Keymaps are buffer-local in `after/ftplugin/python.lua`, only when `lc.py` sits next to the file:
 
-- `:Solve [bootstrap|toggle|chat|reset]` / `<leader>at` — bare: bootstrap when there is no session (restates the problem, lists the binding constraints, asks an opening question), else toggle the pane.
+- `:Solve model` / `<leader>am` — engine (claude / agy) → model (claude: opus/sonnet/haiku; agy: parsed from `agy models`, effort suffix split off) → effort, saved to `stdpath('data')/solve/backend.json` (default claude · opus · high). Every pane entry heading carries the tag (`· _agy · gemini-4-argon · high_`). Switching engine asks, then drops the current problem's session (claude and agy cannot resume each other's); model/effort changes keep it. A problem whose session came from the other engine refuses to resume until you switch back or `:Solve reset`.
+- `:Solve [bootstrap|toggle|chat|reset|model]` / `<leader>at` — bare: bootstrap when there is no session (restates the problem, lists the binding constraints, asks an opening question), else toggle the pane.
 - `:SolveHint` / `<leader>ah` — next rung of a 4-step ladder (observation → data structure/pattern → key insight → prose sketch). `hint` is stored in the session and only advances when the answer arrives; past 4 it says so without calling claude.
 - `:SolveAsk` / `<leader>aa` (n, x) — question, with the visual selection as a fenced snippet.
 - `:SolveReview` / `<leader>ar` — saves the buffer; the coach runs `lc.py test` itself and points at the first failing case and line (or the reasoning gap) without rewriting.
 - `:SolveDebrief` / `<leader>ad` — runs `lc.py test` locally first; if it fails, asks "debrief anyway?" since the debrief reveals the solution, complexity, and related roadmap problems.
-- `:SolveChat` / `<leader>ac` — toggleterm float on the session.
+- `:SolveChat` / `<leader>ac` — toggleterm float on the session (`claude --resume <id>` or `agy --conversation <id>`).
 
 `persistence.lua` wipes `solve-companion://` buffers before saving a session, like the other scratch panes.
 

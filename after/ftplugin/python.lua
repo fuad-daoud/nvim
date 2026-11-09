@@ -15,4 +15,5 @@ if vim.fn.filereadable(vim.fn.expand '%:p:h' .. '/lc.py') == 1 then
   map('n', '<leader>ad', ':SolveDebrief<CR>', 'Co[a]ch: [d]ebrief (reveals solution)')
   map('n', '<leader>at', ':Solve toggle<CR>', 'Co[a]ch: [t]oggle pane')
   map('n', '<leader>ac', ':SolveChat<CR>', 'Co[a]ch: terminal [c]hat')
+  map('n', '<leader>am', ':Solve model<CR>', 'Co[a]ch: pick engine / [m]odel / effort (claude or agy)')
 end
