@@ -13,8 +13,8 @@ return {
       buffer_selected = { fg = '#e0def4', bg = 'NONE', bold = true, italic = false },
       tab = { fg = '#6e6a86', bg = 'NONE' },
       tab_selected = { fg = '#e0def4', bg = 'NONE', bold = true },
-      tab_separator = { fg = '#393552', bg = 'NONE' },
-      tab_separator_selected = { fg = '#393552', bg = 'NONE' },
+      tab_separator = { fg = '#26233a', bg = 'NONE' },
+      tab_separator_selected = { fg = '#26233a', bg = 'NONE' },
       -- foam underline on the active tab
       indicator_selected = { fg = '#9ccfd8', bg = 'NONE' },
       -- unsaved: iris dot for inactive, foam for active
@@ -22,9 +22,9 @@ return {
       modified_visible = { fg = '#c4a7e7', bg = 'NONE' },
       modified_selected = { fg = '#9ccfd8', bg = 'NONE' },
       -- thin dividers use overlay colour
-      separator = { fg = '#393552', bg = 'NONE' },
-      separator_selected = { fg = '#393552', bg = 'NONE' },
-      separator_visible = { fg = '#393552', bg = 'NONE' },
+      separator = { fg = '#26233a', bg = 'NONE' },
+      separator_selected = { fg = '#26233a', bg = 'NONE' },
+      separator_visible = { fg = '#26233a', bg = 'NONE' },
       -- diagnostics
       error = { fg = '#eb6f92', bg = 'NONE' },
       error_selected = { fg = '#eb6f92', bg = 'NONE', bold = true },
