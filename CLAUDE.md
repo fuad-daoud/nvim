@@ -50,7 +50,7 @@ See `lua/scripts/CLAUDE.md` for details on each script.
 Plugins live in two places:
 - **Inline in `lua/scripts/lazy.lua`**: colorscheme (rose-pine), conform, hardtime, colorizer, todo-comments, lazydev, notify, baleia, clock
 - **`lua/plugins/*.lua`**: one spec per file, all auto-imported via `{ import = 'plugins' }`
-- **`after/ftplugin/*.lua`**: buffer-local filetype extras (currently `python.lua` → `<leader>rp` bound to `lua/pyrun.lua`)
+- **`after/ftplugin/*.lua`**: buffer-local filetype extras (currently `python.lua` → `<leader>rp` / `<leader>rd` bound to `lua/pyrun.lua`)
 
 See `lua/plugins/CLAUDE.md` for details on each plugin file.
 
@@ -70,7 +70,7 @@ See `lua/plugins/CLAUDE.md` for details on each plugin file.
 
 `lua/pr_companion.lua` — per-PR review companion on top of `companion.lua` (`:PrCompanion`, `:PrAsk`, `:PrChat`): read-only git/gh tool lists, prompts, diffview-aware snippets; data under `stdpath('data')/pr_review/`.
 
-`lua/pyrun.lua` — `<leader>rp` two-pane Python runner: `input.txt` → stdin, stdout+stderr → `output.txt`, both next to the `.py` and shown in a 25% right column (see `lua/plugins/README.md` → Terminal).
+`lua/pyrun.lua` — `<leader>rp` two-pane Python runner: `input.txt` → stdin, stdout+stderr → `output.txt`, both next to the `.py` and shown in a right column (see `lua/plugins/README.md` → Terminal). In a dir with `lc.py` (~/projects/solve) it runs `python3 lc.py test` with `cases.txt` on top, and `<leader>rd` toggles a dedicated tab for `problem.md`.
 
 `lua/solve_companion.lua` — Socratic LeetCode coach for the `lc.py` workbench, on `companion.lua` (`:Solve`, `:SolveHint`, `:SolveAsk`, `:SolveReview`, `:SolveDebrief`, `:SolveVerify`, `:SolveChat`, `:Solve model`; `<leader>a*` in `solve.py`; every command bootstraps a session on demand). `:Solve model` / `<leader>am` picks claude or agy, then model and effort. Session per problem (`NNNN-slug` from `solve.py`'s header) under `stdpath('data')/solve/`.
 

@@ -1,7 +1,14 @@
--- Two-pane runner (input.txt → stdin, stdout+stderr → output.txt); see lua/pyrun.lua.
+-- Two-pane runner: input.txt → stdin (or `lc.py test` in a workbench dir), stdout+stderr → output.txt; see lua/pyrun.lua.
+-- Loading it registers the layout autocmds (code | input/output | coach widths) before any pane opens.
+require 'pyrun'
 vim.keymap.set('n', '<leader>rp', function()
   require('pyrun').run()
-end, { buffer = true, desc = '[R]un [P]ython file with input.txt → output.txt' })
+end, { buffer = true, desc = '[R]un [P]ython file (input.txt / lc.py test) → output.txt' })
+
+-- lc.py workbench: toggle to a dedicated tab holding problem.md (the statement); see lua/pyrun.lua.
+vim.keymap.set('n', '<leader>rd', function()
+  require('pyrun').description()
+end, { buffer = true, desc = '[R]ead problem [D]escription (problem.md) in its own tab' })
 
 -- lc.py workbench: Socratic coach (lua/solve_companion.lua). Only where lc.py sits next to the file; <leader>a is free.
 if vim.fn.filereadable(vim.fn.expand '%:p:h' .. '/lc.py') == 1 then

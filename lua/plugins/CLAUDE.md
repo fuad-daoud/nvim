@@ -108,7 +108,7 @@ Floating terminal via `<C-\>`. Additional keymaps:
 | `<leader>tv` | Vertical terminal |
 | `<leader>tf` | Large floating terminal |
 | `<A-hjkl>` | Window navigation from terminal or normal mode |
-| `<leader>rp` | (Python buffers only, `after/ftplugin/python.lua` → `lua/pyrun.lua`) save + run `python3 <file> < input.txt > output.txt 2>&1`, showing both files in a 25% right column; not a toggleterm |
+| `<leader>rp` | (Python buffers only, `after/ftplugin/python.lua` → `lua/pyrun.lua`) save + run `python3 <file> < input.txt > output.txt 2>&1`, showing both files in a right column (widths: `M.layout`, see Solve companion); not a toggleterm |
 
 ## leetcode.lua
 
@@ -187,6 +187,8 @@ Keymaps are buffer-local in `after/ftplugin/python.lua`, only when `lc.py` sits 
 - `:SolveChat` / `<leader>ac` — toggleterm float on the session (`claude --resume <id>` or `agy --conversation <id>`).
 
 Claude sessions are named `LeetCode <N>. <Title> [<Difficulty>]` (`name_prefix` in the engine spec → `--name` on every request, so older sessions pick the name up on their next request): from `~/projects/solve`, `claude --resume` lists them by name and `claude --resume 'LeetCode 121. Best Time to Buy and Sell Stock [Easy]'` reopens one directly. agy has no session names.
+
+Layout (`M.layout` in `lua/pyrun.lua`, autocmds on `BufWinEnter` / `WinClosed` / `VimResized`, registered when the python ftplugin loads it): code gets 36% of the width clamped to 90–120 cols, the rest goes right — 42% to the `cases.txt`/`output.txt` column and 58% to the coach pane when both are open, all of it to whichever is open alone; `cases.txt` gets 35% of the column height. Side panes are `winfixwidth` so `equalalways` stops reshuffling them; full-height side windows (file tree) keep their width. Tune via `CODE_FRAC`/`CODE_MIN`/`CODE_MAX`/`IO_SHARE`/`INPUT_FRAC`.
 
 `persistence.lua` wipes `solve-companion://` buffers before saving a session, like the other scratch panes.
 
