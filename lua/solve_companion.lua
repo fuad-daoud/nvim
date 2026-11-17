@@ -9,6 +9,7 @@ local M = {}
 local c = require('companion').new {
   name = 'solve',
   label = 'solve_companion',
+  name_prefix = 'LeetCode', -- claude session name: 'LeetCode 121. Best Time to Buy and Sell Stock [Easy]'
   scheme = 'solve-companion',
   tools = 'Read,Grep,Glob,Bash',
   allowed = { 'Bash(python3 lc.py test*)', 'Bash(make test*)' },

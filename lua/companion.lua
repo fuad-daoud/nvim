@@ -110,8 +110,10 @@ function M.models(name, cb)
   end, M.CLAUDE_MODELS))
 end
 
---- spec = { name, label, scheme, tools, allowed, denied, agy_allow?, pane_width?, not_ready }
+--- spec = { name, label, scheme, tools, allowed, denied, agy_allow?, name_prefix?, pane_width?, not_ready }
 ---  name       data dir under stdpath('data')
+---  name_prefix  claude sessions get `--name '<name_prefix> <current.title>'` on every request (new and resumed), so
+---             they show up named in `/resume` and `claude --resume '<name>'` finds them; agy has no session names
 ---  label      prefix of every notification: '<label>: …'
 ---  scheme     pane buffer name is `<scheme>://<key>`
 ---  tools      claude `--tools` value, e.g. 'Read,Grep,Glob,Bash'
@@ -132,6 +134,14 @@ function M.new(spec)
   local backend
 
   c.uuid = M.uuid
+
+  -- Display name for the current target's claude session, e.g. 'LeetCode 121. Best Time to … [Easy]', or nil.
+  function c.session_name()
+    if not current or not current.title then
+      return nil
+    end
+    return spec.name_prefix and spec.name_prefix .. ' ' .. current.title or current.title
+  end
 
   local function notify(msg, level)
     vim.notify(spec.label .. ': ' .. msg, level or vim.log.levels.INFO)
@@ -228,6 +238,10 @@ function M.new(spec)
       if #spec.denied > 0 then
         table.insert(args, '--disallowedTools')
         vim.list_extend(args, spec.denied)
+      end
+      local name = c.session_name()
+      if name then
+        vim.list_extend(args, { '--name', name })
       end
       return vim.list_extend(args, sess.resume and { '--resume', sess.resume } or { '--session-id', sess.new })
     end,

@@ -186,6 +186,8 @@ Keymaps are buffer-local in `after/ftplugin/python.lua`, only when `lc.py` sits 
 - `:SolveVerify` / `<leader>av` — after reworking `solve.py`: verdict line (✅ optimal / ⚠️ correct but not optimal / ❌ incorrect), failing cases and uncovered edge cases (with `cases.txt` lines), achieved vs optimal complexity with the offending lines, differences from the optimal approach, ≤3 idiom nits. No test gate; before a debrief it asks first since it reveals the optimal approach. Repeatable.
 - `:SolveChat` / `<leader>ac` — toggleterm float on the session (`claude --resume <id>` or `agy --conversation <id>`).
 
+Claude sessions are named `LeetCode <N>. <Title> [<Difficulty>]` (`name_prefix` in the engine spec → `--name` on every request, so older sessions pick the name up on their next request): from `~/projects/solve`, `claude --resume` lists them by name and `claude --resume 'LeetCode 121. Best Time to Buy and Sell Stock [Easy]'` reopens one directly. agy has no session names.
+
 `persistence.lua` wipes `solve-companion://` buffers before saving a session, like the other scratch panes.
 
 ## config-local.lua
