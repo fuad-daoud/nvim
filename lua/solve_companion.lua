@@ -37,6 +37,19 @@ local DEBRIEF_PROMPT = table.concat({
   'and name related problems from ROADMAP.md. Code is allowed now.',
 }, ' ')
 
+local VERIFY_PROMPT = table.concat({
+  'Verify. I have implemented (or reworked) my solution and want to know if it is the optimal approach, done right.',
+  'Read solve.py and cases.txt, then run `python3 lc.py test`. Start with one verdict line:',
+  '✅ optimal and correct / ⚠️ correct but not optimal / ❌ incorrect. Then cover, briefly:',
+  '(1) correctness — any failing case, and edge cases the constraints allow that cases.txt does not cover',
+  '(empty, single element, duplicates, negatives, extremes); suggest exact lines to add to cases.txt;',
+  '(2) complexity — the time/space my code actually achieves versus the optimal, pointing at any line that breaks it',
+  '(hidden O(n) work such as list.pop(0), `in` on a list, slicing or string concatenation in a loop);',
+  '(3) where my implementation differs from the optimal approach and whether that matters;',
+  '(4) at most three Python idiom or readability nits.',
+  'Small code snippets are allowed; do not rewrite the whole solution.',
+}, ' ')
+
 local problem -- { number, name, difficulty, url, dir }
 
 local function notify(msg, level)
@@ -81,22 +94,32 @@ local function refresh(quiet)
   return true
 end
 
--- refresh() + a bootstrapped session, or nil after a notify.
-local function require_session()
+-- False (after a warning) when the current session was made by the other engine; the two cannot resume each other's.
+local function backend_matches()
+  local made, now = c.session_backend(), c.backend().name
+  if made and made ~= now then
+    notify(('session was made with %s, engine is %s — :Solve model to switch back or :Solve reset'):format(made, now), vim.log.levels.WARN)
+    return false
+  end
+  return true
+end
+
+-- refresh(), then cb(session). No session yet → bootstrap one first and call cb once it is ready, so no command needs
+-- a prior :Solve. Does nothing (after a notify) outside a workbench, while busy, or on an engine mismatch.
+local function with_session(cb)
   if not refresh() then
-    return nil
+    return
   end
   local s = c.session()
-  if not s or not s.session_id then
-    notify 'no session — run :Solve first'
-    return nil
+  if s and s.session_id then
+    if backend_matches() then
+      cb(s)
+    end
+    return
   end
-  local made, now = c.session_backend(), c.backend().name
-  if made ~= now then
-    notify(('session was made with %s, engine is %s — :Solve model to switch back or :Solve reset'):format(made, now), vim.log.levels.WARN)
-    return nil
-  end
-  return s
+  M.bootstrap(function()
+    cb(c.session())
+  end)
 end
 
 -- Save the current buffer if it is a real modified file, so the coach reads what I see.
@@ -106,12 +129,20 @@ local function save_current()
   end
 end
 
-local function bootstrap_prompt()
+local function problem_statement()
   local md = vim.fs.joinpath(problem.dir, 'problem.md')
-  local statement = vim.fn.filereadable(md) == 1 and table.concat(vim.fn.readfile(md), '\n') or '(problem.md is missing — ask me to paste the statement)'
+  return vim.fn.filereadable(md) == 1 and table.concat(vim.fn.readfile(md), '\n') or '(problem.md is missing — ask me to paste the statement)'
+end
+
+local function workbench_line()
+  return 'I am solving it in `solve.py` in this directory; `cases.txt` holds my test cases and `python3 lc.py test` runs them.'
+end
+
+local function bootstrap_prompt()
+  local statement = problem_statement()
   return table.concat({
     ('You are a Socratic coach for LeetCode problem %d. %s [%s] (%s).'):format(problem.number, problem.name, problem.difficulty, problem.url),
-    'I am solving it in `solve.py` in this directory; `cases.txt` holds my test cases and `python3 lc.py test` runs them.',
+    workbench_line(),
     '',
     'Rules — these override anything I ask later:',
     '- Never write solution code, or pseudocode that is the solution in disguise.',
@@ -131,7 +162,8 @@ local function bootstrap_prompt()
   }, '\n')
 end
 
-function M.bootstrap()
+-- `then_` (optional) runs once the session is saved — used by with_session to continue with the original command.
+function M.bootstrap(then_)
   if not refresh() then
     return
   end
@@ -155,32 +187,33 @@ function M.bootstrap()
       c.save_session { session_id = id, backend = c.backend().name, hint = 0 }
       r.render(vim.list_extend(vim.split(result, '\n'), { '' }))
       notify 'ready'
+      if then_ then
+        then_()
+      end
     end,
   }
 end
 
 function M.hint()
-  local s = require_session()
-  if not s then
-    return
-  end
-  local n = (s.hint or 0) + 1
-  if n > #HINTS then
-    return notify 'hint ladder exhausted — ask a specific question or :SolveDebrief'
-  end
-  c.request {
-    entry = { ('### 💡 Hint %d/%d'):format(n, #HINTS), '', '_thinking…_' },
-    label = 'thinking…',
-    resume = s.session_id,
-    prompt = ('Hint %d of %d. Level %d = %s. Stay at this level; nothing stronger.'):format(n, #HINTS, n, HINTS[n]),
-    on_done = function(result, err, r)
-      if not result then
-        return r.render { '**error:** ' .. err, '' }
-      end
-      c.save_session { hint = n } -- only a delivered hint burns a rung
-      r.render(vim.list_extend(vim.split(result, '\n'), { '' }))
-    end,
-  }
+  with_session(function(s)
+    local n = (s.hint or 0) + 1
+    if n > #HINTS then
+      return notify 'hint ladder exhausted — ask a specific question or :SolveDebrief'
+    end
+    c.request {
+      entry = { ('### 💡 Hint %d/%d'):format(n, #HINTS), '', '_thinking…_' },
+      label = 'thinking…',
+      resume = s.session_id,
+      prompt = ('Hint %d of %d. Level %d = %s. Stay at this level; nothing stronger.'):format(n, #HINTS, n, HINTS[n]),
+      on_done = function(result, err, r)
+        if not result then
+          return r.render { '**error:** ' .. err, '' }
+        end
+        c.save_session { hint = n } -- only a delivered hint burns a rung
+        r.render(vim.list_extend(vim.split(result, '\n'), { '' }))
+      end,
+    }
+  end)
 end
 
 -- Snippet from buffer `buf` lines a..b: header line + fenced code, path relative to the workbench dir.
@@ -193,9 +226,9 @@ local function snippet(buf, a, b)
   return body
 end
 
+-- The question is asked (and the selection captured) before any bootstrap, so it is sent once the session is ready.
 function M.ask(opts)
-  local s = require_session()
-  if not s then
+  if not refresh() then
     return
   end
   local buf = vim.api.nvim_get_current_buf()
@@ -204,57 +237,130 @@ function M.ask(opts)
     if not q or q:match '^%s*$' then
       return
     end
-    local entry = { '### ❯ ' .. q, '' }
-    if code then
-      vim.list_extend(entry, code)
-      table.insert(entry, '')
-    end
-    table.insert(entry, '_thinking…_')
-    c.request {
-      entry = entry,
-      label = 'thinking…',
-      resume = s.session_id,
-      prompt = code and table.concat(code, '\n') .. '\n\nQuestion: ' .. q or q,
-    }
+    with_session(function(s)
+      local entry = { '### ❯ ' .. q, '' }
+      if code then
+        vim.list_extend(entry, code)
+        table.insert(entry, '')
+      end
+      table.insert(entry, '_thinking…_')
+      c.request {
+        entry = entry,
+        label = 'thinking…',
+        resume = s.session_id,
+        prompt = code and table.concat(code, '\n') .. '\n\nQuestion: ' .. q or q,
+      }
+    end)
   end)
 end
 
 function M.review()
-  local s = require_session()
-  if not s then
-    return
+  save_current()
+  with_session(function(s)
+    c.request {
+      entry = { '### 🔍 Review', '', '_reviewing…_' },
+      label = 'reviewing…',
+      resume = s.session_id,
+      prompt = REVIEW_PROMPT,
+    }
+  end)
+end
+
+-- Opening prompt for a post-solve request (debrief / verify) with no coach session yet: problem context without the
+-- Socratic rules, then `task`.
+local function fresh_post_solve_prompt(task)
+  return table.concat({
+    ('You are reviewing my solution to LeetCode problem %d. %s [%s] (%s).'):format(problem.number, problem.name, problem.difficulty, problem.url),
+    workbench_line(),
+    'You have read-only access to this directory plus `python3 lc.py test`. You cannot edit files.',
+    '',
+    '## Problem',
+    problem_statement(),
+    '',
+    '## Task',
+    task,
+  }, '\n')
+end
+
+-- Shared setup for debrief / verify, which both reveal the solution. Returns `go(o)` — or nil after a notify — where
+-- o = { title, label, prompt }. go resumes the problem's session if there is one, else starts a fresh one (no :Solve
+-- needed). On success the session is marked debriefed with the hint ladder exhausted, so :SolveAsk / :SolveChat /
+-- :SolveVerify can follow up. Also returns the session (nil when none yet).
+local function post_solve()
+  if not refresh() then
+    return nil
+  end
+  local s = c.session()
+  if s and not s.session_id then
+    s = nil
+  end
+  if s and not backend_matches() then
+    return nil
+  end
+  if c.busy() then
+    notify('busy', vim.log.levels.WARN)
+    return nil
   end
   save_current()
-  c.request {
-    entry = { '### 🔍 Review', '', '_reviewing…_' },
-    label = 'reviewing…',
-    resume = s.session_id,
-    prompt = REVIEW_PROMPT,
-  }
+  local function go(o)
+    c.request {
+      entry = { o.title, '', '_' .. o.label .. '_' },
+      label = o.label,
+      resume = s and s.session_id,
+      prompt = s and o.prompt or fresh_post_solve_prompt(o.prompt),
+      on_done = function(result, err, r, _, id)
+        if not result then
+          return r.render { '**error:** ' .. err, '' }
+        end
+        local mark = { debriefed = true, hint = #HINTS }
+        if not s then
+          mark.session_id, mark.backend = id, c.backend().name
+        end
+        c.save_session(mark)
+        r.render(vim.list_extend(vim.split(result, '\n'), { '' }))
+      end,
+    }
+  end
+  return go, s
 end
 
 -- Debrief reveals the solution, so when the tests still fail ask first.
 function M.debrief()
-  local s = require_session()
-  if not s then
+  local go = post_solve()
+  if not go then
     return
   end
-  save_current()
-  local function go()
-    c.request {
-      entry = { '## 🎓 Debrief', '', '_debriefing…_' },
-      label = 'debriefing…',
-      resume = s.session_id,
-      prompt = DEBRIEF_PROMPT,
-    }
+  local function run()
+    go { title = '## 🎓 Debrief', label = 'debriefing…', prompt = DEBRIEF_PROMPT }
   end
   local res = vim.system({ 'python3', 'lc.py', 'test' }, { cwd = problem.dir, text = true }):wait(60000)
   if res.code == 0 then
-    return go()
+    return run()
   end
   vim.ui.select({ 'Yes', 'No' }, { prompt = 'Tests are failing — debrief anyway? (reveals the solution)' }, function(choice)
     if choice == 'Yes' then
-      go()
+      run()
+    end
+  end)
+end
+
+-- Verify my implementation against the optimal approach: correctness, edge cases, achieved complexity, differences.
+-- Failing tests are part of what it reports, so no test gate; but it reveals the optimal approach, so before a
+-- debrief it asks first.
+function M.verify()
+  local go, s = post_solve()
+  if not go then
+    return
+  end
+  local function run()
+    go { title = '## ✔️ Verify', label = 'verifying…', prompt = VERIFY_PROMPT }
+  end
+  if s and s.debriefed then
+    return run()
+  end
+  vim.ui.select({ 'Yes', 'No' }, { prompt = 'No debrief yet — verify anyway? (reveals the optimal approach)' }, function(choice)
+    if choice == 'Yes' then
+      run()
     end
   end)
 end
@@ -331,9 +437,9 @@ function M.toggle()
 end
 
 function M.chat()
-  if require_session() then
+  with_session(function()
     c.chat()
-  end
+  end)
 end
 
 function M.reset()
@@ -374,6 +480,7 @@ function M.setup()
   vim.api.nvim_create_user_command('SolveAsk', M.ask, { range = true, desc = 'Ask the coach about the selected lines' })
   vim.api.nvim_create_user_command('SolveReview', M.review, { desc = 'Coach reviews solve.py against cases.txt without fixing it' })
   vim.api.nvim_create_user_command('SolveDebrief', M.debrief, { desc = 'Post-solve debrief: optimal approach, complexity, takeaways' })
+  vim.api.nvim_create_user_command('SolveVerify', M.verify, { desc = 'Check solve.py implements the optimal approach correctly' })
   vim.api.nvim_create_user_command('SolveChat', M.chat, { desc = 'Open the coach session in a terminal' })
 end
 
