@@ -56,16 +56,103 @@ local function ensure_panes(input, output, origin_win)
 end
 
 -- Decide the input pane and shell command for `file`: lc.py workbench or plain stdin runner.
+-- `-u` = unbuffered, so each write reaches us the moment Python makes it rather than in 8KB chunks; `2>&1` keeps
+-- tracebacks in order with prints on the one pipe `M.run` streams from.
 local function plan(file, dir)
   local esc = vim.fn.shellescape
   if vim.fn.filereadable(dir .. '/lc.py') == 1 then
-    return dir .. '/cases.txt', ('cd %s && python3 lc.py test'):format(esc(dir))
+    return dir .. '/cases.txt', ('cd %s && exec python3 -u lc.py test 2>&1'):format(esc(dir))
   end
   local input = dir .. '/input.txt'
-  return input, ('python3 %s < %s'):format(esc(file), esc(input))
+  return input, ('exec python3 -u %s < %s 2>&1'):format(esc(file), esc(input))
 end
 
---- Save, run (see `plan`) with stdout+stderr → output.txt, and refresh the output pane.
+local MAX_BYTES = 200 * 1024 -- per run; a printing infinite loop in a plain script would otherwise flood the pane
+
+-- Put every window showing `buf` on its last line (tail -f).
+local function follow(buf)
+  local last = vim.api.nvim_buf_line_count(buf)
+  for _, win in ipairs(vim.fn.win_findbuf(buf)) do
+    vim.api.nvim_win_set_cursor(win, { last, 0 })
+  end
+end
+
+-- Where one run's output goes: appended to output.txt and to its buffer as each chunk arrives.
+-- `push` is called from the job's stdout callback (a fast event, no API calls), so it only queues and schedules
+-- a `flush`, which does the writing on the main loop; a flood of chunks costs one flush per loop turn.
+local function sink(output)
+  local self = { file = assert(io.open(output, 'w')), pending = {}, bytes = 0, cut = false, scheduled = false }
+  local buf = vim.fn.bufnr(output)
+  if buf ~= -1 and vim.api.nvim_buf_is_loaded(buf) then
+    vim.api.nvim_buf_set_lines(buf, 0, -1, false, {})
+    vim.bo[buf].modified = false
+  end
+
+  function self.flush()
+    self.scheduled = false
+    if not self.file or #self.pending == 0 then
+      return
+    end
+    local text = table.concat(self.pending)
+    self.pending = {}
+    self.file:write(text)
+    self.file:flush()
+    buf = vim.fn.bufnr(output) -- the pane may have been closed or reopened mid-run
+    if buf ~= -1 and vim.api.nvim_buf_is_loaded(buf) then
+      local row = vim.api.nvim_buf_line_count(buf) - 1
+      local col = #vim.api.nvim_buf_get_lines(buf, row, row + 1, false)[1]
+      vim.api.nvim_buf_set_text(buf, row, col, row, col, vim.split(text, '\n', { plain = true }))
+      vim.bo[buf].modified = false -- it matches the file; we're writing both
+      follow(buf)
+    end
+  end
+
+  function self.push(data)
+    if self.cut then
+      return
+    end
+    if self.bytes + #data > MAX_BYTES then
+      data = data:sub(1, MAX_BYTES - self.bytes) .. ('\n... output cut at %dKB\n'):format(MAX_BYTES / 1024)
+      self.cut = true
+    end
+    self.bytes = self.bytes + #data
+    table.insert(self.pending, data)
+    if not self.scheduled then
+      self.scheduled = true
+      vim.schedule(self.flush)
+    end
+  end
+
+  -- Flush what's left, close the file, and re-read it into the buffer so Neovim's idea of the file is current
+  -- (no "file changed since editing" warning later).
+  function self.close()
+    self.flush()
+    if self.file then
+      self.file:close()
+      self.file = nil
+    end
+    buf = vim.fn.bufnr(output)
+    if buf ~= -1 and vim.api.nvim_buf_is_loaded(buf) then
+      vim.api.nvim_buf_call(buf, function()
+        vim.cmd 'silent! edit!'
+      end)
+      follow(buf)
+    end
+  end
+
+  return self
+end
+
+-- The run in flight, if any: { job, sink, note, started }. A new run kills it first so only one writes output.txt.
+local running
+local TIMEOUT_MS = 15000 -- backstop for plain scripts; lc.py already times out each case on its own
+local NOTE = { title = 'pyrun' }
+
+local function note(msg, level, opts)
+  return vim.notify(msg, level, vim.tbl_extend('force', NOTE, opts or {}))
+end
+
+--- Save, run (see `plan`), and stream stdout+stderr into output.txt and its pane as it's written.
 M.run = function()
   local origin_win = vim.api.nvim_get_current_win()
   local file = vim.fn.expand '%:p'
@@ -79,20 +166,46 @@ M.run = function()
   save_if_modified(input)
   ensure_panes(input, output, origin_win)
 
-  cmd = ('%s > %s 2>&1'):format(cmd, vim.fn.shellescape(output))
-  vim.system({ 'sh', '-c', cmd }, {}, function(res)
-    vim.schedule(function()
-      local out_buf = vim.fn.bufnr(output)
-      if out_buf ~= -1 then
-        vim.api.nvim_buf_call(out_buf, function()
-          vim.cmd 'silent! edit!'
-        end)
+  local previous = running
+  running = nil
+  if previous then
+    previous.job:kill 'sigkill'
+    previous.job:wait(1000)
+    previous.sink.file:close()
+    previous.sink.file = nil -- its queued flushes become no-ops
+  end
+
+  local run = { started = vim.uv.hrtime(), sink = sink(output) }
+  -- timeout=false keeps it up until the result replaces it; replacing the superseded run's note avoids a pile-up
+  run.note = note(('running %s…'):format(vim.fs.basename(file)), vim.log.levels.INFO,
+    { timeout = false, replace = previous and previous.note })
+
+  run.job = vim.system({ 'sh', '-c', cmd }, {
+    timeout = TIMEOUT_MS,
+    stdout = function(_, data)
+      if data then
+        run.sink.push(data)
       end
-      if res.code ~= 0 then
-        vim.notify(('exited %d — see output.txt'):format(res.code), vim.log.levels.WARN)
+    end,
+  }, function(res)
+    vim.schedule(function()
+      if running ~= run then
+        return -- superseded by a newer run, which owns output.txt (and the notification) now
+      end
+      running = nil
+      run.sink.close()
+      local secs = (vim.uv.hrtime() - run.started) / 1e9
+      local opts = { timeout = 3000, replace = run.note }
+      if res.code == 124 then
+        note(('killed after %ds — infinite loop?'):format(TIMEOUT_MS / 1000), vim.log.levels.WARN, opts)
+      elseif res.code ~= 0 then
+        note(('exited %d after %.1fs — see output.txt'):format(res.code, secs), vim.log.levels.WARN, opts)
+      else
+        note(('done in %.1fs'):format(secs), vim.log.levels.INFO, opts)
       end
     end)
   end)
+  running = run
 end
 
 -- Wide-screen layout for a tab holding the runner panes and/or the solve coach pane (`solve-companion://…`):
