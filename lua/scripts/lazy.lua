@@ -172,8 +172,9 @@ require('lazy').setup({
         },
       },
     },
+    -- The colours come from the system's picked theme: see lua/scripts/zen_theme.lua.
     config = function()
-      vim.cmd 'colorscheme rose-pine'
+      require('scripts.zen_theme').apply()
     end,
   },
   {
