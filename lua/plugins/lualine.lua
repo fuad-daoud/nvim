@@ -61,11 +61,18 @@ return {
         {
           noice_mode,
           cond = noice_mode_cond,
-          color = { fg = '#eb6f92', gui = 'bold' }, -- rose-pine rose
+          color = function()
+            return { fg = require('scripts.zen_theme').colors().love, gui = 'bold' }
+          end,
         },
       },
       lualine_x = {
-        { lsp_clients, color = { fg = '#9ccfd8' } }, -- rose-pine foam
+        {
+          lsp_clients,
+          color = function()
+            return { fg = require('scripts.zen_theme').colors().foam }
+          end,
+        },
         'filetype',
       },
       lualine_y = { 'searchcount', 'progress' },

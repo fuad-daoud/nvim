@@ -5,40 +5,45 @@ return {
   lazy = false,
   dependencies = 'nvim-tree/nvim-web-devicons',
   opts = {
-    highlights = {
-      -- transparent everywhere; only fg changes signal state
-      fill = { bg = 'NONE' },
-      background = { fg = '#6e6a86', bg = 'NONE', italic = false },
-      buffer_visible = { fg = '#908caa', bg = 'NONE', italic = false },
-      buffer_selected = { fg = '#e0def4', bg = 'NONE', bold = true, italic = false },
-      tab = { fg = '#6e6a86', bg = 'NONE' },
-      tab_selected = { fg = '#e0def4', bg = 'NONE', bold = true },
-      tab_separator = { fg = '#26233a', bg = 'NONE' },
-      tab_separator_selected = { fg = '#26233a', bg = 'NONE' },
-      -- foam underline on the active tab
-      indicator_selected = { fg = '#9ccfd8', bg = 'NONE' },
-      -- unsaved: iris dot for inactive, foam for active
-      modified = { fg = '#c4a7e7', bg = 'NONE' },
-      modified_visible = { fg = '#c4a7e7', bg = 'NONE' },
-      modified_selected = { fg = '#9ccfd8', bg = 'NONE' },
-      -- thin dividers use overlay colour
-      separator = { fg = '#26233a', bg = 'NONE' },
-      separator_selected = { fg = '#26233a', bg = 'NONE' },
-      separator_visible = { fg = '#26233a', bg = 'NONE' },
-      -- diagnostics
-      error = { fg = '#eb6f92', bg = 'NONE' },
-      error_selected = { fg = '#eb6f92', bg = 'NONE', bold = true },
-      error_diagnostic = { fg = '#eb6f92', bg = 'NONE' },
-      warning = { fg = '#f6c177', bg = 'NONE' },
-      warning_selected = { fg = '#f6c177', bg = 'NONE', bold = true },
-      warning_diagnostic = { fg = '#f6c177', bg = 'NONE' },
-      info = { fg = '#9ccfd8', bg = 'NONE' },
-      info_selected = { fg = '#9ccfd8', bg = 'NONE', bold = true },
-      hint = { fg = '#c4a7e7', bg = 'NONE' },
-      hint_selected = { fg = '#c4a7e7', bg = 'NONE', bold = true },
-      diagnostic = { fg = '#6e6a86', bg = 'NONE' },
-      diagnostic_selected = { fg = '#e0def4', bg = 'NONE' },
-    },
+    -- The colours are the system's picked theme (lua/scripts/zen_theme.lua).
+    -- A function, so they are read again whenever the colour scheme is set.
+    highlights = function()
+      local c = require('scripts.zen_theme').colors()
+      return {
+        -- transparent everywhere; only fg changes signal state
+        fill = { bg = 'NONE' },
+        background = { fg = c.muted, bg = 'NONE', italic = false },
+        buffer_visible = { fg = c.subtle, bg = 'NONE', italic = false },
+        buffer_selected = { fg = c.text, bg = 'NONE', bold = true, italic = false },
+        tab = { fg = c.muted, bg = 'NONE' },
+        tab_selected = { fg = c.text, bg = 'NONE', bold = true },
+        tab_separator = { fg = c.overlay, bg = 'NONE' },
+        tab_separator_selected = { fg = c.overlay, bg = 'NONE' },
+        -- foam underline on the active tab
+        indicator_selected = { fg = c.foam, bg = 'NONE' },
+        -- unsaved: iris dot for inactive, foam for active
+        modified = { fg = c.iris, bg = 'NONE' },
+        modified_visible = { fg = c.iris, bg = 'NONE' },
+        modified_selected = { fg = c.foam, bg = 'NONE' },
+        -- thin dividers use overlay colour
+        separator = { fg = c.overlay, bg = 'NONE' },
+        separator_selected = { fg = c.overlay, bg = 'NONE' },
+        separator_visible = { fg = c.overlay, bg = 'NONE' },
+        -- diagnostics
+        error = { fg = c.love, bg = 'NONE' },
+        error_selected = { fg = c.love, bg = 'NONE', bold = true },
+        error_diagnostic = { fg = c.love, bg = 'NONE' },
+        warning = { fg = c.gold, bg = 'NONE' },
+        warning_selected = { fg = c.gold, bg = 'NONE', bold = true },
+        warning_diagnostic = { fg = c.gold, bg = 'NONE' },
+        info = { fg = c.foam, bg = 'NONE' },
+        info_selected = { fg = c.foam, bg = 'NONE', bold = true },
+        hint = { fg = c.iris, bg = 'NONE' },
+        hint_selected = { fg = c.iris, bg = 'NONE', bold = true },
+        diagnostic = { fg = c.muted, bg = 'NONE' },
+        diagnostic_selected = { fg = c.text, bg = 'NONE' },
+      }
+    end,
     options = {
       mode = 'buffers',
       separator_style = 'thin',

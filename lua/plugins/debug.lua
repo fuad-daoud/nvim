@@ -102,7 +102,8 @@ return {
     vim.api.nvim_set_hl(0, 'DapBreakpointRejected', { fg = rose_pine.muted })
     vim.api.nvim_set_hl(0, 'DapStopped', { fg = rose_pine.foam })
     vim.api.nvim_set_hl(0, 'DapStoppedLine', { bg = rose_pine.highlight_med, bold = true })
-    vim.api.nvim_set_hl(0, 'DapBreakpointLine', { bg = '#5e3548' }) -- Subtle rose-pine overlay
+    -- A third of the theme's red over its background: a band that stays readable in light and dark.
+    vim.api.nvim_set_hl(0, 'DapBreakpointLine', { bg = require('rose-pine.utilities').blend(rose_pine.love, rose_pine.base, 0.33) })
 
     dapui.setup {
       icons = { expanded = '▾', collapsed = '▸', current_frame = '*' },
